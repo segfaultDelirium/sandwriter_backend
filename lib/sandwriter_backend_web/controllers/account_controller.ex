@@ -1,8 +1,8 @@
 defmodule SandwriterBackendWeb.AccountController do
   use SandwriterBackendWeb, :controller
 
-  alias SandwriterBackend.Accounts
-  alias SandwriterBackend.Accounts.Account
+  alias SandwriterBackend.{Accounts, Accounts.Account, Users, Users.User}
+  # alias SandwriterBackend.Accounts.Account
 
   action_fallback SandwriterBackendWeb.FallbackController
 
@@ -12,11 +12,47 @@ defmodule SandwriterBackendWeb.AccountController do
   end
 
   def create(conn, %{"account" => account_params}) do
-    with {:ok, %Account{} = account} <- Accounts.create_account(account_params) do
-      conn
-      |> put_status(:created)
-      |> put_resp_header("location", ~p"/api/accounts/#{account}")
-      |> render(:show, account: account)
+    case Accounts.create_account(account_params) do
+      {:ok, %Account{} = account} ->
+        with {:ok, token, _claims} <- SandwriterBackendWeb.Auth.Guardian.encode_and_sign(account),
+             {:ok, %User{} = user} <- Users.create_user(account, account_params) do
+          conn
+          |> put_status(:created)
+          |> render("account_token.json", %{account: account, token: token})
+        end
+
+      _ ->
+        conn
+        |> put_status(:conflict)
+        |> json("Login already taken.")
+    end
+
+    # with {:ok, %Account{} = account} <- Accounts.create_account(account_params),
+    #      {:ok, token, _claims} <- SandwriterBackendWeb.Auth.Guardian.encode_and_sign(account),
+    #      {:ok, %User{} = user} <- Users.create_user(account, account_params) do
+    #   conn
+    #   |> put_status(:created)
+    #   |> render("account_token.json", %{account: account, token: token})
+    # else
+    #   err ->
+    #     conn
+    #     |> put_status(:conflict)
+    #     |> json(false)
+    # end
+  end
+
+  def login(conn, %{"account" => account_params}) do
+    case SandwriterBackendWeb.Auth.Guardian.authenticate(
+           account_params["login"],
+           account_params["hashed_password"]
+         ) do
+      {:ok, account, token} ->
+        conn |> render("account_token.json", %{account: account, token: token})
+
+      {:error, :unauthorized} ->
+        conn
+        |> put_status(:unauthorized)
+        |> json(false)
     end
   end
 

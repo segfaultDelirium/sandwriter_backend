@@ -8,5 +8,11 @@ defmodule SandwriterBackendWeb.Router do
 
   scope "/api", SandwriterBackendWeb do
     pipe_through :api
+
+    post "/accounts/create", AccountController, :create
+    post "/accounts/login", AccountController, :login
+
+    # get "/accounts", AccountController, :index
+    # resources "/accounts", AccountController, except: [:new, :edit]
   end
 end

@@ -49,8 +49,10 @@ defmodule SandwriterBackend.Users do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_user(attrs \\ %{}) do
-    %User{}
+  def create_user(account, attrs \\ %{}) do
+    # %User{}
+    account
+    |> Ecto.build_assoc(:user)
     |> User.changeset(attrs)
     |> Repo.insert()
   end

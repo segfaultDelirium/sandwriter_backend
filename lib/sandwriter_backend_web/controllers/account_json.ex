@@ -23,4 +23,12 @@ defmodule SandwriterBackendWeb.AccountJSON do
       deleted_at: account.deleted_at
     }
   end
+
+  def render("account_token.json", %{account: account, token: token}) do
+    %{
+      id: account.id,
+      login: account.login,
+      token: token
+    }
+  end
 end

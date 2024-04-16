@@ -27,11 +27,17 @@ defmodule SandwriterBackendWeb.Auth.Guardian do
   end
 
   def authenticate(login, password) do
+    IO.inspect("login: #{login}")
+    IO.inspect("password: #{password}")
+
     case Accounts.get_account_by_login(login) do
       nil ->
         {:error, :unauthorized}
 
       account ->
+        IO.puts(password)
+        IO.puts(account.hashed_password)
+
         case validate_password(password, account.hashed_password) do
           true ->
             create_token(account)

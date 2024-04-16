@@ -12,7 +12,8 @@ defmodule SandwriterBackend.Users.User do
     field :biography, :string
     field :deleted_at, :naive_datetime
     field :phone_number, :string
-    field :account_id, :binary_id
+    # field :account_id, :binary_id
+    belongs_to :account, SandwriterBackend.Accounts.Account
 
     timestamps()
   end
@@ -30,5 +31,8 @@ defmodule SandwriterBackend.Users.User do
       :phone_number
     ])
     |> validate_required([:display_name])
+    # |> unique_constraint(:display_name)
+
+    |> unique_constraint([:display_name, :email, :phone_number])
   end
 end
