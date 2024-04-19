@@ -73,6 +73,14 @@ defmodule SandwriterBackend.Accounts do
     |> Repo.insert()
   end
 
+  # def create_account_and_user(attrs \\ %{}) do
+  #   Ecto.Multi.new()
+  #   |> Ecto.Multi.insert(:account, Account.changeset(%Account{}, attrs))
+  #   |> Ecto.build_assoc(:user)
+  #   |> User.changeset(attrs)
+  #   |> Ecto.Multi.insert(:user)
+  # end
+
   @doc """
   Updates a account.
 

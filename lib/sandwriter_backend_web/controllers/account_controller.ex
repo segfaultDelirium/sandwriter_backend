@@ -12,33 +12,36 @@ defmodule SandwriterBackendWeb.AccountController do
   end
 
   def create(conn, %{"account" => account_params}) do
-    case Accounts.create_account(account_params) do
-      {:ok, %Account{} = account} ->
-        with {:ok, token, _claims} <- SandwriterBackendWeb.Auth.Guardian.encode_and_sign(account),
-             {:ok, %User{} = user} <- Users.create_user(account, account_params) do
-          conn
-          |> put_status(:created)
-          |> render("account_token.json", %{account: account, token: token})
+    {:error, error_message} =
+      SandwriterBackend.Repo.transaction(fn ->
+        case Accounts.create_account(account_params) do
+          {:ok, %Account{} = account} ->
+            with {:ok, token, _claims} <-
+                   SandwriterBackendWeb.Auth.Guardian.encode_and_sign(account) do
+              try do
+                case Users.create_user(account, account_params) do
+                  {:ok, %User{} = user} ->
+                    conn
+                    |> put_status(:created)
+                    |> render("account_token.json", %{account: account, token: token})
+
+                  _ ->
+                    SandwriterBackend.Repo.rollback("Display name already taken.")
+                end
+              rescue
+                Ecto.ConstraintError ->
+                  SandwriterBackend.Repo.rollback("Display name already taken.")
+              end
+            end
+
+          _ ->
+            SandwriterBackend.Repo.rollback("Login already taken.")
         end
+      end)
 
-      _ ->
-        conn
-        |> put_status(:conflict)
-        |> json("Login already taken.")
-    end
-
-    # with {:ok, %Account{} = account} <- Accounts.create_account(account_params),
-    #      {:ok, token, _claims} <- SandwriterBackendWeb.Auth.Guardian.encode_and_sign(account),
-    #      {:ok, %User{} = user} <- Users.create_user(account, account_params) do
-    #   conn
-    #   |> put_status(:created)
-    #   |> render("account_token.json", %{account: account, token: token})
-    # else
-    #   err ->
-    #     conn
-    #     |> put_status(:conflict)
-    #     |> json(false)
-    # end
+    conn
+    |> put_status(:conflict)
+    |> json(error_message)
   end
 
   def login(conn, %{"account" => account_params}) do
