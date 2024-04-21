@@ -26,23 +26,31 @@ defmodule SandwriterBackendWeb.Auth.Guardian do
     {:error, :no_id_provided}
   end
 
+  def resource_from_claims(claims) do
+    id = claims["sub"]
+    Accounts.get_account!(id)
+  end
+
   def authenticate(login, password) do
-    IO.inspect("login: #{login}")
-    IO.inspect("password: #{password}")
+    # IO.inspect("login: #{login}")
+    # IO.inspect("password: #{password}")
 
     case Accounts.get_account_by_login(login) do
       nil ->
+        IO.puts("account not found")
         {:error, :unauthorized}
 
       account ->
-        IO.puts(password)
-        IO.puts(account.hashed_password)
+        # IO.puts(password)
+        # IO.puts(account.hashed_password)
 
         case validate_password(password, account.hashed_password) do
           true ->
+            IO.puts("password validated!")
             create_token(account)
 
           false ->
+            IO.puts("failed to validate password")
             {:error, :unauthorized}
         end
     end

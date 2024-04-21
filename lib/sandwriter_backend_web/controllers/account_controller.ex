@@ -1,6 +1,7 @@
 defmodule SandwriterBackendWeb.AccountController do
   use SandwriterBackendWeb, :controller
 
+  alias SandwriterBackendWeb.Auth.ErrorResponse
   alias SandwriterBackend.{Accounts, Accounts.Account, Users, Users.User}
   # alias SandwriterBackend.Accounts.Account
 
@@ -20,7 +21,7 @@ defmodule SandwriterBackendWeb.AccountController do
                    SandwriterBackendWeb.Auth.Guardian.encode_and_sign(account) do
               try do
                 case Users.create_user(account, account_params) do
-                  {:ok, %User{} = user} ->
+                  {:ok, %User{} = _user} ->
                     conn
                     |> put_status(:created)
                     |> render("account_token.json", %{account: account, token: token})
@@ -53,6 +54,8 @@ defmodule SandwriterBackendWeb.AccountController do
         conn |> render("account_token.json", %{account: account, token: token})
 
       {:error, :unauthorized} ->
+        raise ErrorResponse.Unauthorized, message: "Login or password incorrect."
+
         conn
         |> put_status(:unauthorized)
         |> json(false)
@@ -60,7 +63,10 @@ defmodule SandwriterBackendWeb.AccountController do
   end
 
   def show(conn, %{"id" => id}) do
+    IO.puts("hello from show")
     account = Accounts.get_account!(id)
+    IO.puts("after getting account")
+    IO.inspect(account)
     render(conn, :show, account: account)
   end
 
