@@ -10,7 +10,9 @@ defmodule SandwriterBackendWeb.Auth.SetAccount do
     if conn.assigns[:account] do
       conn
     else
+      IO.inspect(conn)
       account_id = get_session(conn, :account_id)
+      IO.puts("account_id = #{account_id}")
 
       if account_id == nil, do: raise(ErrorResponse.Unauthorized)
 

@@ -17,7 +17,8 @@ defmodule SandwriterBackendWeb.Router do
   end
 
   pipeline :api do
-    plug CORSPlug
+    # plug CORSPlug
+    plug CORSPlug, origin: ["http://localhost:4200"]
     plug :accepts, ["json"]
     plug :fetch_session
   end

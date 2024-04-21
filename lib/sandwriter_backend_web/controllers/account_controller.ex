@@ -20,7 +20,7 @@ defmodule SandwriterBackendWeb.AccountController do
     # Ecto.assoc(account, )
     IO.inspect(account)
 
-    IO.inspect(account.user.email)
+    # IO.inspect(account.user.email)
 
     conn
     |> put_status(:ok)
@@ -38,6 +38,7 @@ defmodule SandwriterBackendWeb.AccountController do
                 case Users.create_user(account, account_params) do
                   {:ok, %User{} = _user} ->
                     conn
+                    |> Plug.Conn.put_session(:account_id, account.id)
                     |> put_status(:created)
                     |> render("account_token.json", %{account: account, token: token})
 
