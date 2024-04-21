@@ -8,6 +8,39 @@ defmodule SandwriterBackend.Accounts do
 
   alias SandwriterBackend.Accounts.Account
 
+  def get_by_login(login) do
+    case Repo.get_by(Account, login: login) do
+      nil ->
+        {:error, :not_found}
+
+      account ->
+        {:ok, account}
+    end
+  end
+
+  def get_by_id(id) do
+    case Repo.get(Account, id) do
+      nil ->
+        {:error, :not_found}
+
+      account ->
+        {:ok, account}
+    end
+  end
+
+  def authenticate_account(login, password) do
+    with {:ok, account} <- get_by_login(login) do
+      case validate_password(password, account.hashed_password) do
+        false -> {:error, :unauthorized}
+        true -> {:ok, account}
+      end
+    end
+  end
+
+  defp validate_password(password, password_from_db) do
+    Bcrypt.verify_pass(password, password_from_db)
+  end
+
   @doc """
   Returns the list of accounts.
 

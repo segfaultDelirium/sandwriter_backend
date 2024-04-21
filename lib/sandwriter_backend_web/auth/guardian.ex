@@ -1,58 +1,36 @@
 defmodule SandwriterBackendWeb.Auth.Guardian do
   use Guardian, otp_app: :sandwriter_backend
 
-  alias SandwriterBackendWeb.Guardian
-
-  alias SandwriterBackend.Users
-  alias SandwriterBackend.Repo
-  alias SandwriterBackend.Account
   alias SandwriterBackend.Accounts
 
-  def subject_for_token(%{id: id}, _claims) do
-    sub = to_string(id)
+  def subject_for_token(resource, _claims) do
+    IO.puts("in subject_for_token")
+    IO.inspect(resource)
+    sub = to_string(resource.id)
     {:ok, sub}
   end
 
-  def subject_for_token(_, _), do: {:error, :no_id_provided}
+  def resource_from_claims(claims) do
+    IO.puts("in resource_from_claims")
+    IO.inspect(claims)
+    id = claims["sub"]
 
-  def resource_by_claims(%{"sub" => id}) do
-    case Accounts.get_account!(id) do
-      nil -> {:error, :not_found}
-      resource -> {:ok, resource}
+    case Accounts.get_by_id(id) do
+      {:ok, account} -> {:ok, account}
+      {:error, e} -> {:error, e}
     end
   end
 
-  def resource_by_claims(_claims) do
-    {:error, :no_id_provided}
-  end
-
-  def resource_from_claims(claims) do
-    id = claims["sub"]
-    Accounts.get_account!(id)
-  end
-
   def authenticate(login, password) do
-    # IO.inspect("login: #{login}")
-    # IO.inspect("password: #{password}")
-
-    case Accounts.get_account_by_login(login) do
-      nil ->
-        IO.puts("account not found")
-        {:error, :unauthorized}
-
-      account ->
-        # IO.puts(password)
-        # IO.puts(account.hashed_password)
-
+    case Accounts.get_by_login(login) do
+      {:ok, account} ->
         case validate_password(password, account.hashed_password) do
-          true ->
-            IO.puts("password validated!")
-            create_token(account)
-
-          false ->
-            IO.puts("failed to validate password")
-            {:error, :unauthorized}
+          true -> create_token(account)
+          false -> {:error, :reason_for_error}
         end
+
+      {:error, e} ->
+        {:error, e}
     end
   end
 
@@ -61,7 +39,7 @@ defmodule SandwriterBackendWeb.Auth.Guardian do
   end
 
   defp create_token(account) do
-    {:ok, token, _claims} = encode_and_sign(account)
+    {:ok, token, _full_claims} = encode_and_sign(account)
     {:ok, account, token}
   end
 end

@@ -39,5 +39,6 @@ defmodule SandwriterBackendWeb.Router do
   scope "/api", SandwriterBackendWeb do
     pipe_through [:api, :auth]
     get "/accounts/by_id/:id", AccountController, :show
+    get "/accounts", AccountController, :index
   end
 end
