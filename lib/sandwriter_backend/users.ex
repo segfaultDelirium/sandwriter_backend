@@ -8,6 +8,16 @@ defmodule SandwriterBackend.Users do
 
   alias SandwriterBackend.Users.User
 
+  def get_by_account_id(account_id) do
+    query =
+      from user in User,
+        where: user.account_id == ^account_id,
+        select: user
+
+    Repo.one(query)
+    # query = from user in Users, where user.account_id = ^account_id, select user
+  end
+
   @doc """
   Returns the list of users.
 

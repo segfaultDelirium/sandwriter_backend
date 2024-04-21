@@ -24,7 +24,8 @@ defmodule SandwriterBackendWeb.UserJSON do
       gender: user.gender,
       biography: user.biography,
       deleted_at: user.deleted_at,
-      phone_number: user.phone_number
+      phone_number: user.phone_number,
+      account_id: user.account_id
     }
   end
 end

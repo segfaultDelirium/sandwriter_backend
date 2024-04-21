@@ -16,15 +16,22 @@ defmodule SandwriterBackendWeb.AccountController do
 
   def get_account_details(conn, _params) do
     account = conn.assigns[:account]
+    user = Users.get_by_account_id(account.id)
 
     # Ecto.assoc(account, )
-    IO.inspect(account)
+    # IO.inspect(account)
 
     # IO.inspect(account.user.email)
 
     conn
     |> put_status(:ok)
-    |> render("account_details.json", %{account: account})
+    |> render("account_details.json", %{account: account, user: user})
+  end
+
+  def get_token(conn, _params) do
+    token = get_session(conn, :access_token)
+    IO.puts("token: #{token}")
+    conn |> json(token)
   end
 
   def create(conn, %{"account" => account_params}) do
@@ -39,6 +46,7 @@ defmodule SandwriterBackendWeb.AccountController do
                   {:ok, %User{} = _user} ->
                     conn
                     |> Plug.Conn.put_session(:account_id, account.id)
+                    |> Plug.Conn.put_session(:access_token, token)
                     |> put_status(:created)
                     |> render("account_token.json", %{account: account, token: token})
 
@@ -69,6 +77,7 @@ defmodule SandwriterBackendWeb.AccountController do
       {:ok, account, token} ->
         conn
         |> Plug.Conn.put_session(:account_id, account.id)
+        |> Plug.Conn.put_session(:access_token, token)
         |> render("account_token.json", %{account: account, token: token})
 
       {:error, _} ->

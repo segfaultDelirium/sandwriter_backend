@@ -24,6 +24,7 @@ defmodule SandwriterBackendWeb.Router do
   end
 
   pipeline :auth do
+    plug SandwriterBackendWeb.Auth.SetBearerToken
     plug SandwriterBackendWeb.Auth.Pipeline
     plug SandwriterBackendWeb.Auth.SetAccount
   end
@@ -44,5 +45,7 @@ defmodule SandwriterBackendWeb.Router do
     get "/accounts/by_id/:id", AccountController, :show
     get "/accounts", AccountController, :index
     get "/accounts/details", AccountController, :get_account_details
+    get "/users", UserController, :index
+    get "/accounts/get-token", AccountController, :get_token
   end
 end
