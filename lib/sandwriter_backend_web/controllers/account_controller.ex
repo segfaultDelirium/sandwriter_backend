@@ -53,7 +53,7 @@ defmodule SandwriterBackendWeb.AccountController do
       {:ok, account, token} ->
         conn |> render("account_token.json", %{account: account, token: token})
 
-      {:error, :unauthorized} ->
+      {:error, _} ->
         raise ErrorResponse.Unauthorized, message: "Login or password incorrect."
 
         conn
