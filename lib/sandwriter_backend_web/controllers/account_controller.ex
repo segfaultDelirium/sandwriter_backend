@@ -7,9 +7,24 @@ defmodule SandwriterBackendWeb.AccountController do
 
   action_fallback SandwriterBackendWeb.FallbackController
 
-  def index(conn, _params) do
+  def index(conn, params) do
+    IO.inspect(params)
+    IO.inspect(conn)
     accounts = Accounts.list_accounts()
     render(conn, :index, accounts: accounts)
+  end
+
+  def get_account_details(conn, _params) do
+    account = conn.assigns[:account]
+
+    # Ecto.assoc(account, )
+    IO.inspect(account)
+
+    IO.inspect(account.user.email)
+
+    conn
+    |> put_status(:ok)
+    |> render("account_details.json", %{account: account})
   end
 
   def create(conn, %{"account" => account_params}) do
@@ -51,7 +66,9 @@ defmodule SandwriterBackendWeb.AccountController do
            account_params["hashed_password"]
          ) do
       {:ok, account, token} ->
-        conn |> render("account_token.json", %{account: account, token: token})
+        conn
+        |> Plug.Conn.put_session(:account_id, account.id)
+        |> render("account_token.json", %{account: account, token: token})
 
       {:error, _} ->
         raise ErrorResponse.Unauthorized, message: "Login or password incorrect."

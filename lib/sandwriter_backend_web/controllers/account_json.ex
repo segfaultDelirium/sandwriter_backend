@@ -31,4 +31,11 @@ defmodule SandwriterBackendWeb.AccountJSON do
       token: token
     }
   end
+
+  def render("account_details.json", %{account: account}) do
+    %{
+      id: account.id,
+      login: account.login
+    }
+  end
 end

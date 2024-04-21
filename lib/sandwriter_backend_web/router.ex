@@ -19,10 +19,12 @@ defmodule SandwriterBackendWeb.Router do
   pipeline :api do
     plug CORSPlug
     plug :accepts, ["json"]
+    plug :fetch_session
   end
 
   pipeline :auth do
     plug SandwriterBackendWeb.Auth.Pipeline
+    plug SandwriterBackendWeb.Auth.SetAccount
   end
 
   scope "/api", SandwriterBackendWeb do
@@ -40,5 +42,6 @@ defmodule SandwriterBackendWeb.Router do
     pipe_through [:api, :auth]
     get "/accounts/by_id/:id", AccountController, :show
     get "/accounts", AccountController, :index
+    get "/accounts/details", AccountController, :get_account_details
   end
 end
