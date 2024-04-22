@@ -47,5 +47,7 @@ defmodule SandwriterBackendWeb.Router do
     post "/accounts/change-details", AccountController, :change_details
     post "/accounts/change-password", AccountController, :change_password
     post "/accounts/logout", AccountController, :logout
+
+    get "/article/:slug", ArticleController, :get_article
   end
 end
