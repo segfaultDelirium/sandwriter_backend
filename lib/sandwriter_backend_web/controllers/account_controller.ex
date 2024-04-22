@@ -3,7 +3,6 @@ defmodule SandwriterBackendWeb.AccountController do
 
   alias SandwriterBackendWeb.Auth.ErrorResponse
   alias SandwriterBackend.{Accounts, Accounts.Account, Users, Users.User}
-  # alias SandwriterBackend.Accounts.Account
 
   action_fallback SandwriterBackendWeb.FallbackController
 
@@ -86,6 +85,50 @@ defmodule SandwriterBackendWeb.AccountController do
         conn
         |> put_status(:unauthorized)
         |> json(false)
+    end
+  end
+
+  def change_details(conn, payload) do
+    account = conn.assigns[:account]
+    user = Users.get_by_account_id(account.id)
+    # TODO
+    SandwriterBackend.Repo.transaction(fn ->
+      with {:ok, %User{} = user} <- Users.update_user(user, payload),
+           {:ok, %Account{} = account} <- Accounts.update_account(account, payload) do
+        # render(conn, :show, user: user)
+
+        conn
+        |> put_status(:ok)
+        |> render("account_details.json", %{account: account, user: user})
+      end
+    end)
+  end
+
+  def change_password(conn, %{
+        "old_password" => old_password,
+        "new_password" => new_password,
+        "new_password_repeated" => new_password_repeated
+      }) do
+    account = conn.assigns[:account]
+
+    case SandwriterBackendWeb.Auth.Guardian.validate_password(
+           old_password,
+           account.hashed_password
+         ) do
+      false ->
+        raise ErrorResponse.Unauthorized, message: "incorrect old password"
+
+      true ->
+        if new_password == new_password_repeated do
+          # hashed_password = Bcrypt.hash_pwd_salt(new_password)
+          Accounts.update_account(account, %{hashed_password: new_password})
+
+          conn
+          |> put_status(:ok)
+          |> render("account.json", %{account: account})
+        else
+          raise ErrorResponse.BadRequest, message: "new password do not match repeated password"
+        end
     end
   end
 

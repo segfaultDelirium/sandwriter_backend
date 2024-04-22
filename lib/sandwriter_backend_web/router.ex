@@ -35,9 +35,6 @@ defmodule SandwriterBackendWeb.Router do
     post "/accounts/create", AccountController, :create
     post "/accounts/login", AccountController, :login
     get "/unprotected/accounts/by_id/:id", AccountController, :show
-
-    # get "/accounts", AccountController, :index
-    # resources "/accounts", AccountController, except: [:new, :edit]
   end
 
   scope "/api", SandwriterBackendWeb do
@@ -47,5 +44,7 @@ defmodule SandwriterBackendWeb.Router do
     get "/accounts/details", AccountController, :get_account_details
     get "/users", UserController, :index
     get "/accounts/get-token", AccountController, :get_token
+    post "/accounts/change-details", AccountController, :change_details
+    post "/accounts/change-password", AccountController, :change_password
   end
 end
