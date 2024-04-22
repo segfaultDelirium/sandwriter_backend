@@ -46,5 +46,6 @@ defmodule SandwriterBackendWeb.Router do
     get "/accounts/get-token", AccountController, :get_token
     post "/accounts/change-details", AccountController, :change_details
     post "/accounts/change-password", AccountController, :change_password
+    post "/accounts/logout", AccountController, :logout
   end
 end

@@ -47,7 +47,7 @@ defmodule SandwriterBackendWeb.AccountController do
                     |> Plug.Conn.put_session(:account_id, account.id)
                     |> Plug.Conn.put_session(:access_token, token)
                     |> put_status(:created)
-                    |> render("account_token.json", %{account: account, token: token})
+                    |> render("account.json", %{account: account})
 
                   _ ->
                     SandwriterBackend.Repo.rollback("Display name already taken.")
@@ -77,7 +77,9 @@ defmodule SandwriterBackendWeb.AccountController do
         conn
         |> Plug.Conn.put_session(:account_id, account.id)
         |> Plug.Conn.put_session(:access_token, token)
-        |> render("account_token.json", %{account: account, token: token})
+        |> render("account.json", %{account: account})
+
+      # |> render("account_token.json", %{account: account, token: token})
 
       {:error, _} ->
         raise ErrorResponse.Unauthorized, message: "Login or password incorrect."
@@ -86,6 +88,14 @@ defmodule SandwriterBackendWeb.AccountController do
         |> put_status(:unauthorized)
         |> json(false)
     end
+  end
+
+  def logout(conn, params) do
+    conn
+    |> Plug.Conn.put_session(:account_id, nil)
+    |> Plug.Conn.put_session(:access_token, nil)
+    |> put_status(:ok)
+    |> json(nil)
   end
 
   def change_details(conn, payload) do
