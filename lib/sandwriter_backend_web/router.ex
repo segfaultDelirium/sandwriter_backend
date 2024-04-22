@@ -11,7 +11,7 @@ defmodule SandwriterBackendWeb.Router do
   end
 
   defp handle_errors(conn, x) do
-    IO.inspect(x)
+    # IO.inspect(x)
     conn |> halt()
     # conn |> json(%{errors: message}) |> halt()
   end
@@ -48,6 +48,8 @@ defmodule SandwriterBackendWeb.Router do
     post "/accounts/change-password", AccountController, :change_password
     post "/accounts/logout", AccountController, :logout
 
-    get "/article/:slug", ArticleController, :get_article
+    get "/articles/:slug", ArticleController, :get_article
+    post "/articles/put-sample-article", ArticleController, :put_sample_article
+    post "/comments/to-article/:article_id", CommentController, :comment_article
   end
 end

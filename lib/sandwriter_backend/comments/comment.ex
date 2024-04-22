@@ -9,6 +9,7 @@ defmodule SandwriterBackend.Comments.Comment do
     field :deleted_at, :naive_datetime
     field :author_id, :binary_id
     field :replies_to, :binary_id
+    field :article_id, :binary_id
 
     timestamps()
   end
@@ -16,7 +17,7 @@ defmodule SandwriterBackend.Comments.Comment do
   @doc false
   def changeset(comment, attrs) do
     comment
-    |> cast(attrs, [:text, :deleted_at])
-    |> validate_required([:text])
+    |> cast(attrs, [:author_id, :article_id, :text, :deleted_at])
+    |> validate_required([:author_id, :article_id, :text])
   end
 end

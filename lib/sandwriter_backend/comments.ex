@@ -7,6 +7,32 @@ defmodule SandwriterBackend.Comments do
   alias SandwriterBackend.Repo
 
   alias SandwriterBackend.Comments.Comment
+  alias SandwriterBackend.Accounts.Account
+  alias SandwriterBackend.Users.User
+
+  def get_by_article_id(article_id) do
+    # Repo.all(Comment, article_id: article_id)
+    query =
+      from comment in Comment,
+        join: account in Account,
+        on: account.id == comment.author_id,
+        join: user in User,
+        on: user.account_id == account.id,
+        where: comment.article_id == ^article_id,
+        select: %{
+          id: comment.id,
+          text: comment.text,
+          author_id: comment.author_id,
+          display_name: user.display_name,
+          article_id: comment.article_id,
+          replies_to: comment.replies_to,
+          inserted_at: comment.inserted_at,
+          updated_at: comment.updated_at,
+          deleted_at: comment.deleted_at
+        }
+
+    Repo.all(query)
+  end
 
   @doc """
   Returns the list of comments.

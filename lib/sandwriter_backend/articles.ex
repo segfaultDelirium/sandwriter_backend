@@ -9,6 +9,7 @@ defmodule SandwriterBackend.Articles do
   alias SandwriterBackend.Articles.Article
 
   def get_by_slug(slug) do
+    Repo.get_by(Article, slug: slug)
   end
 
   @doc """

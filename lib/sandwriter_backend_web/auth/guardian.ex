@@ -4,15 +4,15 @@ defmodule SandwriterBackendWeb.Auth.Guardian do
   alias SandwriterBackend.Accounts
 
   def subject_for_token(resource, _claims) do
-    IO.puts("in subject_for_token")
-    IO.inspect(resource)
+    # IO.puts("in subject_for_token")
+    # IO.inspect(resource)
     sub = to_string(resource.id)
     {:ok, sub}
   end
 
   def resource_from_claims(claims) do
-    IO.puts("in resource_from_claims")
-    IO.inspect(claims)
+    # IO.puts("in resource_from_claims")
+    # IO.inspect(claims)
     id = claims["sub"]
 
     case Accounts.get_by_id(id) do

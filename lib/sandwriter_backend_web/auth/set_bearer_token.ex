@@ -14,7 +14,10 @@ defmodule SandwriterBackendWeb.Auth.SetBearerToken do
       token = get_session(conn, :access_token)
 
       if token do
-        conn |> put_req_header("authorization", "Bearer #{token}") |> IO.inspect()
+        conn
+        |> put_req_header("authorization", "Bearer #{token}")
+
+        # |> IO.inspect()
       else
         conn
       end

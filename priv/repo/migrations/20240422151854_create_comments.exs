@@ -8,7 +8,7 @@ defmodule SandwriterBackend.Repo.Migrations.CreateComments do
       add :deleted_at, :naive_datetime
       add :author_id, references(:accounts, on_delete: :nothing, type: :binary_id)
       add :replies_to, references(:comments, on_delete: :nothing, type: :binary_id)
-
+      add :article_id, references(:articles, on_delete: :nothing, type: :binary_id)
       timestamps()
     end
 
