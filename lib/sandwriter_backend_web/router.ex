@@ -51,5 +51,7 @@ defmodule SandwriterBackendWeb.Router do
     get "/articles/:slug", ArticleController, :get_article
     post "/articles/put-sample-article", ArticleController, :put_sample_article
     post "/comments/to-article/:article_id", CommentController, :comment_article
+    post "/articles/like/:article_id", UserArticleLikeDislikeController, :like_article
+    post "/articles/dislike/:article_id", UserArticleLikeDislikeController, :dislike_article
   end
 end

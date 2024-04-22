@@ -7,7 +7,7 @@ defmodule SandwriterBackend.UserArticleLikeDislikes.UserArticleLikeDislike do
   schema "user_article_like_dislikes" do
     field :is_liked, :boolean, default: false
     field :is_disliked, :boolean, default: false
-    field :user_id, :binary_id
+    field :account_id, :binary_id
     field :article_id, :binary_id
 
     timestamps()
@@ -16,7 +16,7 @@ defmodule SandwriterBackend.UserArticleLikeDislikes.UserArticleLikeDislike do
   @doc false
   def changeset(user_article_like_dislike, attrs) do
     user_article_like_dislike
-    |> cast(attrs, [:is_liked, :is_disliked])
-    |> validate_required([:is_liked, :is_disliked])
+    |> cast(attrs, [:account_id, :article_id, :is_liked, :is_disliked])
+    |> validate_required([:account_id, :article_id, :is_liked, :is_disliked])
   end
 end

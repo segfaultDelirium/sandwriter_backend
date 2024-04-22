@@ -8,6 +8,14 @@ defmodule SandwriterBackend.UserArticleLikeDislikes do
 
   alias SandwriterBackend.UserArticleLikeDislikes.UserArticleLikeDislike
 
+  def get_by_article_id_and_user_id(article_id, account_id) do
+    query =
+      from user_article in UserArticleLikeDislike,
+        where: user_article.article_id == ^article_id and user_article.account_id == ^account_id
+
+    Repo.one(query)
+  end
+
   @doc """
   Returns the list of user_article_like_dislikes.
 
@@ -67,7 +75,10 @@ defmodule SandwriterBackend.UserArticleLikeDislikes do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_user_article_like_dislike(%UserArticleLikeDislike{} = user_article_like_dislike, attrs) do
+  def update_user_article_like_dislike(
+        %UserArticleLikeDislike{} = user_article_like_dislike,
+        attrs
+      ) do
     user_article_like_dislike
     |> UserArticleLikeDislike.changeset(attrs)
     |> Repo.update()
@@ -98,7 +109,10 @@ defmodule SandwriterBackend.UserArticleLikeDislikes do
       %Ecto.Changeset{data: %UserArticleLikeDislike{}}
 
   """
-  def change_user_article_like_dislike(%UserArticleLikeDislike{} = user_article_like_dislike, attrs \\ %{}) do
+  def change_user_article_like_dislike(
+        %UserArticleLikeDislike{} = user_article_like_dislike,
+        attrs \\ %{}
+      ) do
     UserArticleLikeDislike.changeset(user_article_like_dislike, attrs)
   end
 end

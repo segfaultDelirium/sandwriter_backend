@@ -7,7 +7,7 @@ defmodule SandwriterBackend.UserCommentLikeDislikes.UserCommentLikeDislike do
   schema "user_comment_like_dislikes" do
     field :is_liked, :boolean, default: false
     field :is_disliked, :boolean, default: false
-    field :user_id, :binary_id
+    field :account_id, :binary_id
     field :comment_id, :binary_id
 
     timestamps()

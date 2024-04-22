@@ -1,7 +1,7 @@
 defmodule SandwriterBackendWeb.ArticleController do
   use SandwriterBackendWeb, :controller
 
-  alias SandwriterBackend.{Accounts, Users, Articles, Comments}
+  alias SandwriterBackend.{Accounts, Users, Articles, Comments, UserArticleLikeDislikes}
   alias SandwriterBackend.Articles.Article
 
   action_fallback SandwriterBackendWeb.FallbackController
