@@ -27,6 +27,26 @@ defmodule SandwriterBackendWeb.ArticleJSON do
     }
   end
 
+  def render("list_of_article_without_text_and_comments.json", %{articles: articles}) do
+    %{
+      data:
+        for(article <- articles, do: render("article_without_text_and_comments.json", article))
+    }
+  end
+
+  def render("article_without_text_and_comments.json", article) do
+    %{
+      id: article.id,
+      author: %{display_name: article.author.display_name},
+      title: article.title,
+      slug: article.slug,
+      # text: article.text,
+      inserted_at: article.inserted_at,
+      updated_at: article.updated_at,
+      deleted_at: article.deleted_at
+    }
+  end
+
   def render("article.json", %{
         article: article,
         user: user,

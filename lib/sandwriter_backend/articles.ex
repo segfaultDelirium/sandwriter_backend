@@ -4,9 +4,35 @@ defmodule SandwriterBackend.Articles do
   """
 
   import Ecto.Query, warn: false
-  alias SandwriterBackend.Repo
+  alias SandwriterBackend.{Repo, Accounts.Account, Users.User}
 
   alias SandwriterBackend.Articles.Article
+
+  # query =
+  #   from user_article in UserArticleLikeDislike,
+  #     where: user_article.article_id == ^article_id and user_article.is_liked == true,
+  #     group_by: user_article.article_id,
+  #     select: count(user_article.is_liked)
+
+  def get_all_without_text() do
+    query =
+      from article in Article,
+        join: account in Account,
+        on: article.author_id == account.id,
+        join: user in User,
+        on: account.id == user.account_id,
+        select: %{
+          id: article.id,
+          author: %{display_name: user.display_name},
+          title: article.title,
+          slug: article.slug,
+          inserted_at: article.inserted_at,
+          updated_at: article.updated_at,
+          deleted_at: article.deleted_at
+        }
+
+    Repo.all(query)
+  end
 
   def get_by_slug(slug) do
     Repo.get_by(Article, slug: slug)

@@ -6,6 +6,14 @@ defmodule SandwriterBackendWeb.ArticleController do
 
   action_fallback SandwriterBackendWeb.FallbackController
 
+  def all_without_text_and_comments(conn, _params) do
+    articles = Articles.get_all_without_text()
+    IO.inspect(articles)
+
+    conn
+    |> render("list_of_article_without_text_and_comments.json", articles: articles)
+  end
+
   def put_sample_article(conn, _params) do
     IO.puts("hello from put_sample_article")
     sample_article_attributes = get_sample_article_attributes()
