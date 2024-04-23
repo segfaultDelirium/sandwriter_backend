@@ -8,7 +8,7 @@ defmodule SandwriterBackendWeb.ArticleController do
 
   def all_without_text_and_comments(conn, _params) do
     articles = Articles.get_all_without_text()
-    IO.inspect(articles)
+    # IO.inspect(articles)
 
     conn
     |> render("list_of_article_without_text_and_comments.json", articles: articles)
@@ -19,7 +19,7 @@ defmodule SandwriterBackendWeb.ArticleController do
     sample_article_attributes = get_sample_article_attributes()
     result = Articles.create_article(sample_article_attributes)
     IO.puts("result of create_article:")
-    IO.inspect(result)
+    # IO.inspect(result)
 
     conn
     |> put_status(201)
@@ -29,7 +29,7 @@ defmodule SandwriterBackendWeb.ArticleController do
   def get_article(conn, %{"slug" => slug}) do
     account = conn.assigns[:account]
     article = Articles.get_by_slug(slug)
-    IO.inspect(article)
+    # IO.inspect(article)
 
     user =
       if article.author_id do
@@ -39,7 +39,7 @@ defmodule SandwriterBackendWeb.ArticleController do
       end
 
     comments = Comments.get_by_article_id(article.id)
-    IO.inspect(comments)
+    # IO.inspect(comments)
 
     likes_count = UserArticleLikeDislikes.get_likes_count_by_article_id(article.id)
     dislikes_count = UserArticleLikeDislikes.get_dislikes_count_by_article_id(article.id)
@@ -47,7 +47,7 @@ defmodule SandwriterBackendWeb.ArticleController do
     current_user_upvotes_downvotes =
       UserArticleLikeDislikes.get_by_article_id_and_user_id(article.id, account.id)
 
-    IO.inspect(current_user_upvotes_downvotes)
+    # IO.inspect(current_user_upvotes_downvotes)
 
     if article do
       # render(conn, :show, article: article)

@@ -7,8 +7,8 @@ defmodule SandwriterBackendWeb.AccountController do
   action_fallback SandwriterBackendWeb.FallbackController
 
   def index(conn, params) do
-    IO.inspect(params)
-    IO.inspect(conn)
+    # IO.inspect(params)
+    # IO.inspect(conn)
     accounts = Accounts.list_accounts()
     render(conn, :index, accounts: accounts)
   end
@@ -143,10 +143,10 @@ defmodule SandwriterBackendWeb.AccountController do
   end
 
   def show(conn, %{"id" => id}) do
-    IO.puts("hello from show")
+    # IO.puts("hello from show")
     account = Accounts.get_account!(id)
-    IO.puts("after getting account")
-    IO.inspect(account)
+    # IO.puts("after getting account")
+    # IO.inspect(account)
     render(conn, :show, account: account)
   end
 

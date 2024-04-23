@@ -20,7 +20,7 @@ defmodule SandwriterBackendWeb.CommentController do
 
     case Comments.create_comment(comment_params) do
       {:ok, comment} ->
-        IO.inspect(comment)
+        # IO.inspect(comment)
 
         conn
         |> put_status(:created)

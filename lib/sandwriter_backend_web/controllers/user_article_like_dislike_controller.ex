@@ -34,7 +34,7 @@ defmodule SandwriterBackendWeb.UserArticleLikeDislikeController do
         |> json(nil)
 
       user_article ->
-        IO.inspect(user_article)
+        # IO.inspect(user_article)
 
         new_is_liked_status =
           if user_article.is_liked,
@@ -85,7 +85,7 @@ defmodule SandwriterBackendWeb.UserArticleLikeDislikeController do
         |> json(nil)
 
       user_article ->
-        IO.inspect(user_article)
+        # IO.inspect(user_article)
 
         new_is_disliked_status =
           if user_article.is_disliked,

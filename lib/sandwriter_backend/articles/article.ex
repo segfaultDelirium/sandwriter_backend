@@ -16,8 +16,8 @@ defmodule SandwriterBackend.Articles.Article do
 
   @doc false
   def changeset(article, attrs) do
-    IO.puts("changeset of article.ex")
-    IO.inspect(attrs)
+    # IO.puts("changeset of article.ex")
+    # IO.inspect(attrs)
 
     article
     |> cast(attrs, [:author_id, :title, :slug, :text, :deleted_at])
