@@ -19,6 +19,7 @@ defmodule SandwriterBackendWeb.ArticleController do
   end
 
   def get_article(conn, %{"slug" => slug}) do
+    account = conn.assigns[:account]
     article = Articles.get_by_slug(slug)
     IO.inspect(article)
 
@@ -32,9 +33,25 @@ defmodule SandwriterBackendWeb.ArticleController do
     comments = Comments.get_by_article_id(article.id)
     IO.inspect(comments)
 
+    likes_count = UserArticleLikeDislikes.get_likes_count_by_article_id(article.id)
+    dislikes_count = UserArticleLikeDislikes.get_dislikes_count_by_article_id(article.id)
+
+    current_user_upvotes_downvotes =
+      UserArticleLikeDislikes.get_by_article_id_and_user_id(article.id, account.id)
+
+    IO.inspect(current_user_upvotes_downvotes)
+
     if article do
       # render(conn, :show, article: article)
-      render(conn, "article.json", article: article, user: user, comments: comments)
+      render(conn, "article.json",
+        article: article,
+        user: user,
+        comments: comments,
+        likes_count: likes_count,
+        dislikes_count: dislikes_count,
+        is_upvoted_by_current_user: current_user_upvotes_downvotes.is_liked,
+        is_downvoted_by_current_user: current_user_upvotes_downvotes.is_disliked
+      )
     else
       conn
       |> put_status(404)

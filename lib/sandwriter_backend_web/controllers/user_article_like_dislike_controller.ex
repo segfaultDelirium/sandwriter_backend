@@ -88,7 +88,7 @@ defmodule SandwriterBackendWeb.UserArticleLikeDislikeController do
         IO.inspect(user_article)
 
         new_is_disliked_status =
-          if user_article.is_liked,
+          if user_article.is_disliked,
             do: false,
             else: true
 

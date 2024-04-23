@@ -16,6 +16,32 @@ defmodule SandwriterBackend.UserArticleLikeDislikes do
     Repo.one(query)
   end
 
+  def get_likes_count_by_article_id(article_id) do
+    query =
+      from user_article in UserArticleLikeDislike,
+        where: user_article.article_id == ^article_id and user_article.is_liked == true,
+        group_by: user_article.article_id,
+        select: count(user_article.is_liked)
+
+    case Repo.one(query) do
+      nil -> 0
+      x -> x
+    end
+  end
+
+  def get_dislikes_count_by_article_id(article_id) do
+    query =
+      from user_article in UserArticleLikeDislike,
+        where: user_article.article_id == ^article_id and user_article.is_disliked == true,
+        group_by: user_article.article_id,
+        select: count(user_article.is_disliked)
+
+    case Repo.one(query) do
+      nil -> 0
+      x -> x
+    end
+  end
+
   @doc """
   Returns the list of user_article_like_dislikes.
 

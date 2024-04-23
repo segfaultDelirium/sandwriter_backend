@@ -27,7 +27,15 @@ defmodule SandwriterBackendWeb.ArticleJSON do
     }
   end
 
-  def render("article.json", %{article: article, user: user, comments: comments}) do
+  def render("article.json", %{
+        article: article,
+        user: user,
+        comments: comments,
+        likes_count: likes_count,
+        dislikes_count: dislikes_count,
+        is_upvoted_by_current_user: is_upvoted_by_current_user,
+        is_downvoted_by_current_user: is_downvoted_by_current_user
+      }) do
     %{
       author: %{display_name: user.display_name},
       comments:
@@ -46,6 +54,10 @@ defmodule SandwriterBackendWeb.ArticleJSON do
       title: article.title,
       slug: article.slug,
       text: article.text,
+      upvotes: likes_count,
+      downvotes: dislikes_count,
+      is_upvoted_by_current_user: is_upvoted_by_current_user,
+      is_downvoted_by_current_user: is_downvoted_by_current_user,
       inserted_at: article.inserted_at,
       updated_at: article.updated_at,
       deleted_at: article.deleted_at
