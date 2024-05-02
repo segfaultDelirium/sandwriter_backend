@@ -28,10 +28,29 @@ defmodule SandwriterBackendWeb.ArticleJSON do
   end
 
   def render("list_of_article_without_text_and_comments.json", %{articles: articles}) do
-    for(article <- articles, do: render("article_without_text_and_comments.json", article))
+    for(
+      {article, likes, dislikes, is_liked_by_current_user, is_disliked_by_current_user} <-
+        articles,
+      do:
+        render(
+          "article_without_text_and_comments.json",
+          article,
+          likes,
+          dislikes,
+          is_liked_by_current_user,
+          is_disliked_by_current_user
+        )
+    )
   end
 
-  def render("article_without_text_and_comments.json", article) do
+  def render(
+        "article_without_text_and_comments.json",
+        article,
+        likes,
+        dislikes,
+        is_liked_by_current_user,
+        is_disliked_by_current_user
+      ) do
     %{
       id: article.id,
       author: %{display_name: article.author.display_name},
@@ -40,7 +59,11 @@ defmodule SandwriterBackendWeb.ArticleJSON do
       # text: article.text,
       inserted_at: article.inserted_at,
       updated_at: article.updated_at,
-      deleted_at: article.deleted_at
+      deleted_at: article.deleted_at,
+      upvotes: likes,
+      downvotes: dislikes,
+      is_upvoted_by_current_user: is_liked_by_current_user,
+      is_downvoted_by_current_user: is_disliked_by_current_user
     }
   end
 

@@ -7,11 +7,47 @@ defmodule SandwriterBackendWeb.ArticleController do
   action_fallback SandwriterBackendWeb.FallbackController
 
   def all_without_text_and_comments(conn, _params) do
+    account = conn.assigns[:account]
     articles = Articles.get_all_without_text()
-    # IO.inspect(articles)
+    user_article_like_dislike_list = UserArticleLikeDislikes.list_user_article_like_dislikes()
+    IO.inspect(user_article_like_dislike_list)
+
+    articles_with_likes_and_dislikes =
+      articles
+      |> Enum.map(fn article ->
+        # res =
+        {likes_count, dislikes_count, is_liked_by_current_user, is_disliked_by_current_user} =
+          user_article_like_dislike_list
+          |> Enum.filter(fn like_dislike ->
+            like_dislike.article_id == article.id
+          end)
+          |> Enum.reduce({0, 0, false, false}, fn like_dislike, acc ->
+            new_likes_count = elem(acc, 0) + if like_dislike.is_liked, do: 1, else: 0
+            new_dislikes_count = elem(acc, 1) + if like_dislike.is_disliked, do: 1, else: 0
+
+            new_is_liked_by_current_user =
+              if like_dislike.is_liked and like_dislike.account_id == account.id,
+                do: true,
+                else: elem(acc, 2)
+
+            new_is_disliked_by_current_user =
+              if like_dislike.is_disliked and like_dislike.account_id == account.id,
+                do: true,
+                else: elem(acc, 3)
+
+            {new_likes_count, new_dislikes_count, new_is_liked_by_current_user,
+             new_is_disliked_by_current_user}
+          end)
+
+        {article, likes_count, dislikes_count, is_liked_by_current_user,
+         is_disliked_by_current_user}
+      end)
 
     conn
-    |> render("list_of_article_without_text_and_comments.json", articles: articles)
+    # |> render("list_of_article_without_text_and_comments.json", articles: articles)
+    |> render("list_of_article_without_text_and_comments.json",
+      articles: articles_with_likes_and_dislikes
+    )
   end
 
   def put_sample_article(conn, _params) do
