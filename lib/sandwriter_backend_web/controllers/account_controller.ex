@@ -7,8 +7,6 @@ defmodule SandwriterBackendWeb.AccountController do
   action_fallback SandwriterBackendWeb.FallbackController
 
   def index(conn, params) do
-    # IO.inspect(params)
-    # IO.inspect(conn)
     accounts = Accounts.list_accounts()
     render(conn, :index, accounts: accounts)
   end
@@ -16,11 +14,6 @@ defmodule SandwriterBackendWeb.AccountController do
   def get_account_details(conn, _params) do
     account = conn.assigns[:account]
     user = Users.get_by_account_id(account.id)
-
-    # Ecto.assoc(account, )
-    # IO.inspect(account)
-
-    # IO.inspect(account.user.email)
 
     conn
     |> put_status(:ok)

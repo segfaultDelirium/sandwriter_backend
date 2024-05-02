@@ -20,7 +20,7 @@ defmodule SandwriterBackendWeb.ArticleJSON do
       id: article.id,
       title: article.title,
       slug: article.slug,
-      text: article.text,
+      # text: article.text,
       inserted_at: article.inserted_at,
       updated_at: article.updated_at,
       deleted_at: article.deleted_at
@@ -74,7 +74,9 @@ defmodule SandwriterBackendWeb.ArticleJSON do
         likes_count: likes_count,
         dislikes_count: dislikes_count,
         is_upvoted_by_current_user: is_upvoted_by_current_user,
-        is_downvoted_by_current_user: is_downvoted_by_current_user
+        is_downvoted_by_current_user: is_downvoted_by_current_user,
+        text_sections: text_sections,
+        image_sections: image_sections
       }) do
     %{
       author: %{display_name: user.display_name},
@@ -93,14 +95,31 @@ defmodule SandwriterBackendWeb.ArticleJSON do
       id: article.id,
       title: article.title,
       slug: article.slug,
-      text: article.text,
+      # text: article.text,
       upvotes: likes_count,
       downvotes: dislikes_count,
       is_upvoted_by_current_user: is_upvoted_by_current_user,
       is_downvoted_by_current_user: is_downvoted_by_current_user,
       inserted_at: article.inserted_at,
       updated_at: article.updated_at,
-      deleted_at: article.deleted_at
+      deleted_at: article.deleted_at,
+      sections:
+        Enum.map(text_sections, fn text_section ->
+          %{
+            section_type: "TEXT",
+            section_index: text_section.section_index,
+            text: text_section.text
+          }
+        end) ++
+          Enum.map(image_sections, fn image_section ->
+            %{
+              section_type: "IMAGE",
+              section_index: image_section.section_index,
+              image_id: image_section.image_id,
+              image_title: image_section.title,
+              image_base_64: Base.encode64(image_section.data)
+            }
+          end)
     }
   end
 end

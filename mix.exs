@@ -43,7 +43,9 @@ defmodule SandwriterBackend.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:bcrypt_elixir, "~> 3.0"},
       {:guardian, "~> 2.3"},
-      {:cors_plug, "~> 3.0"}
+      {:cors_plug, "~> 3.0"},
+      {:slugify, "~> 1.3"},
+      {:elixir_uuid, "~> 1.2"}
     ]
   end
 

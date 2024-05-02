@@ -1,7 +1,18 @@
 defmodule SandwriterBackendWeb.ArticleController do
   use SandwriterBackendWeb, :controller
 
-  alias SandwriterBackend.{Accounts, Users, Articles, Comments, UserArticleLikeDislikes}
+  alias SandwriterBackend.ArticleTextSections
+
+  alias SandwriterBackend.{
+    Accounts,
+    Users,
+    Articles,
+    Comments,
+    UserArticleLikeDislikes,
+    Images,
+    ImageArticles
+  }
+
   alias SandwriterBackend.Articles.Article
 
   action_fallback SandwriterBackendWeb.FallbackController
@@ -44,7 +55,6 @@ defmodule SandwriterBackendWeb.ArticleController do
       end)
 
     conn
-    # |> render("list_of_article_without_text_and_comments.json", articles: articles)
     |> render("list_of_article_without_text_and_comments.json",
       articles: articles_with_likes_and_dislikes
     )
@@ -53,39 +63,52 @@ defmodule SandwriterBackendWeb.ArticleController do
   def put_sample_article(conn, _params) do
     IO.puts("hello from put_sample_article")
     sample_article_attributes = get_sample_article_attributes()
-    result = Articles.create_article(sample_article_attributes)
-    IO.puts("result of create_article:")
-    # IO.inspect(result)
+    sample_article_text_section = get_sample_article_text_section()
 
-    conn
-    |> put_status(201)
-    |> json(nil)
+    SandwriterBackend.Repo.transaction(fn ->
+      with {:ok, article} <- Articles.create_article(sample_article_attributes),
+           {:ok, article_text_section} <-
+             ArticleTextSections.create_article_text_section(
+               Map.put(sample_article_text_section, :article_id, article.id)
+             ) do
+        conn
+        |> put_status(201)
+        |> json(nil)
+      end
+    end)
+
+    # conn |> put_status(:bad_request) |> json("failed to upload image")
   end
 
   def get_article(conn, %{"slug" => slug}) do
     account = conn.assigns[:account]
     article = Articles.get_by_slug(slug)
-    # IO.inspect(article)
-
-    user =
-      if article.author_id do
-        Users.get_by_account_id(article.author_id)
-      else
-        nil
-      end
-
-    comments = Comments.get_by_article_id(article.id)
-    # IO.inspect(comments)
-
-    likes_count = UserArticleLikeDislikes.get_likes_count_by_article_id(article.id)
-    dislikes_count = UserArticleLikeDislikes.get_dislikes_count_by_article_id(article.id)
-
-    current_user_upvotes_downvotes =
-      UserArticleLikeDislikes.get_by_article_id_and_user_id(article.id, account.id)
-
-    # IO.inspect(current_user_upvotes_downvotes)
 
     if article do
+      text_sections = ArticleTextSections.get_by_article_id(article.id)
+      IO.puts("text sections:")
+      IO.inspect(text_sections)
+      image_sections = ImageArticles.get_by_article_id(article.id)
+
+      user =
+        if article.author_id do
+          Users.get_by_account_id(article.author_id)
+        else
+          nil
+        end
+
+      comments = Comments.get_by_article_id(article.id)
+      # IO.inspect(comments)
+
+      likes_count = UserArticleLikeDislikes.get_likes_count_by_article_id(article.id)
+      dislikes_count = UserArticleLikeDislikes.get_dislikes_count_by_article_id(article.id)
+
+      current_user_upvotes_downvotes =
+        case UserArticleLikeDislikes.get_by_article_id_and_user_id(article.id, account.id) do
+          nil -> %{is_liked: false, is_disliked: false}
+          x -> x
+        end
+
       # render(conn, :show, article: article)
       render(conn, "article.json",
         article: article,
@@ -94,7 +117,9 @@ defmodule SandwriterBackendWeb.ArticleController do
         likes_count: likes_count,
         dislikes_count: dislikes_count,
         is_upvoted_by_current_user: current_user_upvotes_downvotes.is_liked,
-        is_downvoted_by_current_user: current_user_upvotes_downvotes.is_disliked
+        is_downvoted_by_current_user: current_user_upvotes_downvotes.is_disliked,
+        text_sections: text_sections,
+        image_sections: image_sections
       )
     else
       conn
@@ -108,13 +133,56 @@ defmodule SandwriterBackendWeb.ArticleController do
     render(conn, :index, articles: articles)
   end
 
-  def create(conn, %{"article" => article_params}) do
-    with {:ok, %Article{} = article} <- Articles.create_article(article_params) do
-      conn
-      |> put_status(:created)
-      |> put_resp_header("location", ~p"/api/articles/#{article}")
-      |> render(:show, article: article)
-    end
+  defp create_slug(title) do
+    String.slice(UUID.uuid1(), 0, 8) <> "_" <> Slug.slugify(title)
+  end
+
+  def create(conn, %{"title" => title, "sections" => sections}) do
+    account = conn.assigns[:account]
+
+    attributes = %{
+      author_id: account.id,
+      title: title,
+      slug: create_slug(title)
+    }
+
+    # sample_article_attributes = get_sample_article_attributes()
+    # sample_article_text_section = get_sample_article_text_section()
+
+    SandwriterBackend.Repo.transaction(fn ->
+      with {:ok, article} <- Articles.create_article(attributes) do
+        text_sections =
+          sections
+          |> Enum.filter(fn section -> section["sectionType"] == "TEXT" end)
+          |> Enum.map(fn section ->
+            %{
+              section_index: section["sectionIndex"],
+              text: section["text"],
+              article_id: article.id
+            }
+          end)
+
+        image_sections =
+          sections
+          |> Enum.filter(fn section -> section["sectionType"] == "IMAGE" end)
+          |> Enum.map(fn section ->
+            %{
+              article_id: article.id,
+              image_id: section["imageId"],
+              title: section["imageTitle"],
+              section_index: section["sectionIndex"]
+            }
+          end)
+
+        ArticleTextSections.create_all(text_sections)
+
+        ImageArticles.create_all(image_sections)
+
+        conn
+        |> put_status(201)
+        |> json(%{slug: article.slug})
+      end
+    end)
   end
 
   def show(conn, %{"id" => id}) do
@@ -139,9 +207,18 @@ defmodule SandwriterBackendWeb.ArticleController do
   end
 
   defp get_sample_article_attributes() do
+    title = "‘I think I might die if I made it’"
+
     %{
-      title: "‘I think I might die if I made it’",
-      slug: "sample-slug-3242",
+      title: title,
+      slug: create_slug(title),
+      author_id: "b4742730-9cc7-438e-9439-32f6a65cabf7"
+    }
+  end
+
+  defp get_sample_article_text_section() do
+    %{
+      section_index: 0,
       text: """
       <p>
       In the build up to the release of The Tortured Poets Department, Taylor Swift fans had it all figured out.
@@ -314,8 +391,7 @@ defmodule SandwriterBackendWeb.ArticleController do
 
       <p>“I’m not trying to exaggeratе, but I think I might die if I made it,” a naïve girl once dreamed as she looked up to
       her idols. Now peering out from her gilded cage, a weary Swift fears that she was right.</p>
-      """,
-      author_id: "9ed610bd-c2d7-4be7-8239-651f9eb0b878"
+      """
     }
   end
 end

@@ -15,7 +15,7 @@ defmodule SandwriterBackendWeb.ImageJSON do
     %{
       id: image.id,
       data: Base.encode64(image.data),
-      title: image.title,
+      # title: image.title,
       deleted_at: image.deleted_at
     }
   end

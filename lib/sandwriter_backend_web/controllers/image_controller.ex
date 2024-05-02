@@ -3,24 +3,21 @@ defmodule SandwriterBackendWeb.ImageController do
 
   alias SandwriterBackend.Images
   alias SandwriterBackend.Images.Image
+  alias SandwriterBackend.{ImageArticles}
 
   action_fallback SandwriterBackendWeb.FallbackController
 
   def upload(conn, params) do
+    account = conn.assigns[:account]
     IO.inspect(params)
-    title = params["title"]
     uploaded_image = params["uploaded_image"]
     {:ok, binary_data} = File.read(uploaded_image.path)
-    attributes = %{title: title, data: binary_data}
+    attributes = %{data: binary_data, uploaded_by: account.id}
 
     case Images.create_image(attributes) do
       {:ok, x} -> render(conn, :show, image: x)
-      {:error, e} -> conn |> put_status(:bad_request) |> json("failed to upload image")
+      {:error, _e} -> conn |> put_status(:bad_request) |> json("failed to upload image")
     end
-
-    # IO.inspect(conn.query_params)
-    # images = Images.list_images()
-    # render(conn, :index, images: images)
   end
 
   def index(conn, _params) do

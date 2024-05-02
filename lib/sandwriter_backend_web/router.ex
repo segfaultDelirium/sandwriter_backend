@@ -10,7 +10,7 @@ defmodule SandwriterBackendWeb.Router do
     conn |> json(%{errors: message}) |> halt()
   end
 
-  defp handle_errors(conn, x) do
+  defp handle_errors(conn, _x) do
     # IO.inspect(x)
     conn |> halt()
     # conn |> json(%{errors: message}) |> halt()
@@ -50,6 +50,7 @@ defmodule SandwriterBackendWeb.Router do
 
     get "/articles/:slug", ArticleController, :get_article
     post "/articles/put-sample-article", ArticleController, :put_sample_article
+    post "/articles", ArticleController, :create
     post "/comments/to-article/:article_id", CommentController, :comment_article
     post "/articles/like/:article_id", UserArticleLikeDislikeController, :like_article
     post "/articles/dislike/:article_id", UserArticleLikeDislikeController, :dislike_article

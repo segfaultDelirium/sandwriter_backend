@@ -6,7 +6,6 @@ defmodule SandwriterBackend.Images.Image do
   @foreign_key_type :binary_id
   schema "images" do
     field :data, :binary
-    field :title, :string
     field :deleted_at, :naive_datetime
     field :uploaded_by, :binary_id
 
@@ -16,7 +15,7 @@ defmodule SandwriterBackend.Images.Image do
   @doc false
   def changeset(image, attrs) do
     image
-    |> cast(attrs, [:data, :title, :deleted_at])
-    |> validate_required([:data])
+    |> cast(attrs, [:data, :deleted_at, :uploaded_by])
+    |> validate_required([:data, :uploaded_by])
   end
 end

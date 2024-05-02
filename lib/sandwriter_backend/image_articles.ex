@@ -5,8 +5,38 @@ defmodule SandwriterBackend.ImageArticles do
 
   import Ecto.Query, warn: false
   alias SandwriterBackend.Repo
+  alias SandwriterBackend.Images.Image
 
   alias SandwriterBackend.ImageArticles.ImageArticle
+
+  def create_all(image_sections) do
+    current_datetime = NaiveDateTime.local_now()
+
+    image_sections_with_timestamps =
+      Enum.map(image_sections, fn x ->
+        x
+        |> Map.put(:inserted_at, current_datetime)
+        |> Map.put(:updated_at, current_datetime)
+      end)
+
+    Repo.insert_all(ImageArticle, image_sections_with_timestamps)
+  end
+
+  def get_by_article_id(article_id) do
+    query =
+      from image_article in ImageArticle,
+        join: image in Image,
+        on: image.id == image_article.image_id,
+        where: image_article.article_id == ^article_id,
+        select: %{
+          image_id: image.id,
+          section_index: image_article.section_index,
+          title: image_article.title,
+          data: image.data
+        }
+
+    Repo.all(query)
+  end
 
   @doc """
   Returns the list of image_articles.

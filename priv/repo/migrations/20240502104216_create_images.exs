@@ -5,7 +5,6 @@ defmodule SandwriterBackend.Repo.Migrations.CreateImages do
     create table(:images, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :data, :binary
-      add :title, :string
       add :deleted_at, :naive_datetime
       add :uploaded_by, references(:accounts, on_delete: :nothing, type: :binary_id)
 
