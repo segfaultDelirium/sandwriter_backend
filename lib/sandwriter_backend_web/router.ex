@@ -57,5 +57,7 @@ defmodule SandwriterBackendWeb.Router do
     get "/articles/without-text-and-comments/all",
         ArticleController,
         :all_without_text_and_comments
+
+    post "images/", ImageController, :upload
   end
 end
