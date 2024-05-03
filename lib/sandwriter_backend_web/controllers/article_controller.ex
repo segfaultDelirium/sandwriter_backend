@@ -6,6 +6,7 @@ defmodule SandwriterBackendWeb.ArticleController do
   alias SandwriterBackend.{
     Users,
     Comments,
+    Comments.Comment,
     UserArticleLikeDislikes,
     ImageArticles
   }
@@ -49,17 +50,39 @@ defmodule SandwriterBackendWeb.ArticleController do
     end)
   end
 
+  defp link_comment_counts_to_articles(articles, comment_counts) do
+    # IO.inspect(articles)
+    # IO.inspect(comment_counts)
+    articles |> Enum.map(fn article_tuple -> 
+
+      article = elem(article_tuple, 0) |> IO.inspect()
+
+      count = comment_counts 
+        |> Enum.find(fn comment_count -> comment_count.article_id == article.id end)
+      count = case count do
+        nil -> 0
+        x -> x.count
+      end
+      last_index = article_tuple |> Tuple.to_list() |> Enum.count()
+      Tuple.insert_at(article_tuple, last_index, count)
+    end)
+    # |> IO.inspect()
+  end
+
   def all_without_text_and_comments(conn, _params) do
     account = conn.assigns[:account]
     articles = Articles.get_all_without_text_and_comments()
+    comment_count_per_article = Comments.get_comment_count_per_article_id()
     user_article_like_dislike_list = UserArticleLikeDislikes.list_user_article_like_dislikes()
 
-    articles_with_likes_and_dislikes =
+    articles_with_likes_and_dislikes_and_comment_count =
       link_articles_to_likes_and_dislikes(account.id, articles, user_article_like_dislike_list)
+      |> link_comment_counts_to_articles(comment_count_per_article)
+
 
     conn
     |> render("list_of_article_without_text_and_comments.json",
-      articles: articles_with_likes_and_dislikes
+      articles: articles_with_likes_and_dislikes_and_comment_count
     )
   end
 

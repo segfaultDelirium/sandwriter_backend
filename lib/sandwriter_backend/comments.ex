@@ -11,6 +11,15 @@ defmodule SandwriterBackend.Comments do
   alias SandwriterBackend.Accounts.Account
   alias SandwriterBackend.Users.User
 
+  def get_comment_count_per_article_id() do
+    query =
+      from comment in Comment,
+        group_by: comment.article_id,
+        select: %{count: count(comment.id), article_id: comment.article_id}
+
+    Repo.all(query)
+  end
+
   def get_by_article_id(article_id) do
     query =
       from comment in Comment,

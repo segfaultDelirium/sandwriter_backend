@@ -11,7 +11,7 @@ defmodule SandwriterBackendWeb.ArticleJSON do
 
   def render("list_of_article_without_text_and_comments.json", %{articles: articles}) do
     for(
-      {article, likes, dislikes, is_liked_by_current_user, is_disliked_by_current_user} <-
+      {article, likes, dislikes, is_liked_by_current_user, is_disliked_by_current_user, comment_count} <-
         articles,
       do:
         render(
@@ -20,7 +20,8 @@ defmodule SandwriterBackendWeb.ArticleJSON do
           likes,
           dislikes,
           is_liked_by_current_user,
-          is_disliked_by_current_user
+          is_disliked_by_current_user,
+          comment_count
         )
     )
   end
@@ -31,7 +32,8 @@ defmodule SandwriterBackendWeb.ArticleJSON do
          likes,
          dislikes,
          is_liked_by_current_user,
-         is_disliked_by_current_user
+         is_disliked_by_current_user,
+         comment_count
        ) do
     Map.take(article, Article.get_viewable_fields()) |||
       %{
@@ -39,7 +41,8 @@ defmodule SandwriterBackendWeb.ArticleJSON do
         dislikes: dislikes,
         is_liked_by_current_user: is_liked_by_current_user,
         is_disliked_by_current_user: is_disliked_by_current_user,
-        author: Map.take(article.author, User.get_viewable_fields())
+        author: Map.take(article.author, User.get_viewable_fields()),
+        comment_count: comment_count
       }
   end
 
@@ -55,11 +58,12 @@ defmodule SandwriterBackendWeb.ArticleJSON do
       }) do
     render(
       "article_without_text_and_comments.json",
-      article,
+      article,      
       likes,
       dislikes,
       is_liked_by_current_user,
-      is_disliked_by_current_user
+      is_disliked_by_current_user,
+      comment_count: Enum.count(comments)
     ) |||
       %{
         comments:

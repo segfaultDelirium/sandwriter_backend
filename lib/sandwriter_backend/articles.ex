@@ -4,7 +4,7 @@ defmodule SandwriterBackend.Articles do
   """
 
   import Ecto.Query, warn: false
-  alias SandwriterBackend.{Repo, Accounts.Account, Users.User}
+  alias SandwriterBackend.{Repo, Accounts.Account, Users.User, Comments.Comment}
 
   alias SandwriterBackend.Articles.Article
 
