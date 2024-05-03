@@ -56,6 +56,15 @@ defmodule SandwriterBackendWeb.ArticleJSON do
         text_sections: text_sections,
         image_sections: image_sections
       }) do
+
+    sections = Enum.map(text_sections, fn text_section ->
+            Map.take(text_section, ArticleTextSection.get_viewable_fields()) |||
+              %{section_type: "TEXT"}
+          end) ++
+            Enum.map(image_sections, fn image_section ->
+              %{section_type: "IMAGE", image_base_64: Base.encode64(image_section.data)} |||
+                Map.take(image_section, ImageArticle.get_viewable_fields())
+            end)
     render(
       "article_without_text_and_comments.json",
       article,      
@@ -73,15 +82,7 @@ defmodule SandwriterBackendWeb.ArticleJSON do
                 author: Map.take(comment.author, User.get_viewable_fields())
               }
           end),
-        sections:
-          Enum.map(text_sections, fn text_section ->
-            Map.take(text_section, ArticleTextSection.get_viewable_fields()) |||
-              %{section_type: "TEXT"}
-          end) ++
-            Enum.map(image_sections, fn image_section ->
-              %{section_type: "IMAGE", image_base_64: Base.encode64(image_section.data)} |||
-                Map.take(image_section, ImageArticle.get_viewable_fields())
-            end)
+        sections: sections |> Enum.sort(& (&1.section_index <= &2.section_index))
       }
   end
 end
