@@ -1,31 +1,13 @@
 defmodule SandwriterBackendWeb.ArticleJSON do
-  alias SandwriterBackend.Articles.Article
+  alias SandwriterBackend.{
+    Users.User,
+    Articles.Article,
+    Comments.Comment,
+    ArticleTextSections.ArticleTextSection,
+    ImageArticles.ImageArticle
+  }
 
-  @doc """
-  Renders a list of articles.
-  """
-  def index(%{articles: articles}) do
-    %{data: for(article <- articles, do: data(article))}
-  end
-
-  @doc """
-  Renders a single article.
-  """
-  def show(%{article: article}) do
-    %{data: data(article)}
-  end
-
-  defp data(%Article{} = article) do
-    %{
-      id: article.id,
-      title: article.title,
-      slug: article.slug,
-      # text: article.text,
-      inserted_at: article.inserted_at,
-      updated_at: article.updated_at,
-      deleted_at: article.deleted_at
-    }
-  end
+  import MapMerge
 
   def render("list_of_article_without_text_and_comments.json", %{articles: articles}) do
     for(
@@ -43,83 +25,59 @@ defmodule SandwriterBackendWeb.ArticleJSON do
     )
   end
 
-  def render(
-        "article_without_text_and_comments.json",
-        article,
-        likes,
-        dislikes,
-        is_liked_by_current_user,
-        is_disliked_by_current_user
-      ) do
-    %{
-      id: article.id,
-      author: %{display_name: article.author.display_name},
-      title: article.title,
-      slug: article.slug,
-      # text: article.text,
-      inserted_at: article.inserted_at,
-      updated_at: article.updated_at,
-      deleted_at: article.deleted_at,
-      upvotes: likes,
-      downvotes: dislikes,
-      is_upvoted_by_current_user: is_liked_by_current_user,
-      is_downvoted_by_current_user: is_disliked_by_current_user
-    }
+  defp render(
+         "article_without_text_and_comments.json",
+         article,
+         likes,
+         dislikes,
+         is_liked_by_current_user,
+         is_disliked_by_current_user
+       ) do
+    Map.take(article, Article.get_viewable_fields()) |||
+      %{
+        likes: likes,
+        dislikes: dislikes,
+        is_liked_by_current_user: is_liked_by_current_user,
+        is_disliked_by_current_user: is_disliked_by_current_user,
+        author: Map.take(article.author, User.get_viewable_fields())
+      }
   end
 
   def render("article.json", %{
         article: article,
-        user: user,
         comments: comments,
-        likes_count: likes_count,
-        dislikes_count: dislikes_count,
-        is_upvoted_by_current_user: is_upvoted_by_current_user,
-        is_downvoted_by_current_user: is_downvoted_by_current_user,
+        likes: likes,
+        dislikes: dislikes,
+        is_liked_by_current_user: is_liked_by_current_user,
+        is_disliked_by_current_user: is_disliked_by_current_user,
         text_sections: text_sections,
         image_sections: image_sections
       }) do
-    %{
-      author: %{display_name: user.display_name},
-      comments:
-        Enum.map(comments, fn comment ->
-          %{
-            id: comment.id,
-            author_id: comment.author_id,
-            author: %{display_name: comment.display_name},
-            text: comment.text,
-            inserted_at: comment.inserted_at,
-            updated_at: comment.updated_at,
-            deleted_at: comment.deleted_at
-          }
-        end),
-      id: article.id,
-      title: article.title,
-      slug: article.slug,
-      # text: article.text,
-      upvotes: likes_count,
-      downvotes: dislikes_count,
-      is_upvoted_by_current_user: is_upvoted_by_current_user,
-      is_downvoted_by_current_user: is_downvoted_by_current_user,
-      inserted_at: article.inserted_at,
-      updated_at: article.updated_at,
-      deleted_at: article.deleted_at,
-      sections:
-        Enum.map(text_sections, fn text_section ->
-          %{
-            section_type: "TEXT",
-            section_index: text_section.section_index,
-            text: text_section.text
-          }
-        end) ++
-          Enum.map(image_sections, fn image_section ->
-            %{
-              section_type: "IMAGE",
-              section_index: image_section.section_index,
-              image_id: image_section.image_id,
-              image_title: image_section.title,
-              image_base_64: Base.encode64(image_section.data)
-            }
-          end)
-    }
+    render(
+      "article_without_text_and_comments.json",
+      article,
+      likes,
+      dislikes,
+      is_liked_by_current_user,
+      is_disliked_by_current_user
+    ) |||
+      %{
+        comments:
+          Enum.map(comments, fn comment ->
+            Map.take(comment, Comment.get_viewable_fields()) |||
+              %{
+                author: Map.take(comment.author, User.get_viewable_fields())
+              }
+          end),
+        sections:
+          Enum.map(text_sections, fn text_section ->
+            Map.take(text_section, ArticleTextSection.get_viewable_fields()) |||
+              %{section_type: "TEXT"}
+          end) ++
+            Enum.map(image_sections, fn image_section ->
+              %{section_type: "IMAGE", image_base_64: Base.encode64(image_section.data)} |||
+                Map.take(image_section, ImageArticle.get_viewable_fields())
+            end)
+      }
   end
 end

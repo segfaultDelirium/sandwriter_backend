@@ -6,11 +6,6 @@ defmodule SandwriterBackendWeb.AccountController do
 
   action_fallback SandwriterBackendWeb.FallbackController
 
-  def index(conn, params) do
-    accounts = Accounts.list_accounts()
-    render(conn, :index, accounts: accounts)
-  end
-
   def get_account_details(conn, _params) do
     account = conn.assigns[:account]
     user = Users.get_by_account_id(account.id)
@@ -20,14 +15,8 @@ defmodule SandwriterBackendWeb.AccountController do
     |> render("account_details.json", %{account: account, user: user})
   end
 
-  def get_token(conn, _params) do
-    token = get_session(conn, :access_token)
-    IO.puts("token: #{token}")
-    conn |> json(token)
-  end
-
   def create(conn, %{"account" => account_params}) do
-    {:error, error_message} =
+    transaction_result =
       SandwriterBackend.Repo.transaction(fn ->
         case Accounts.create_account(account_params) do
           {:ok, %Account{} = account} ->
@@ -56,9 +45,15 @@ defmodule SandwriterBackendWeb.AccountController do
         end
       end)
 
-    conn
-    |> put_status(:conflict)
-    |> json(error_message)
+    case transaction_result do
+      {:ok, x} ->
+        x
+
+      {:error, error_message} ->
+        conn
+        |> put_status(:conflict)
+        |> json(error_message)
+    end
   end
 
   def login(conn, %{"account" => account_params}) do
@@ -71,8 +66,6 @@ defmodule SandwriterBackendWeb.AccountController do
         |> Plug.Conn.put_session(:account_id, account.id)
         |> Plug.Conn.put_session(:access_token, token)
         |> render("account.json", %{account: account})
-
-      # |> render("account_token.json", %{account: account, token: token})
 
       {:error, _} ->
         raise ErrorResponse.Unauthorized, message: "Login or password incorrect."
@@ -94,17 +87,35 @@ defmodule SandwriterBackendWeb.AccountController do
   def change_details(conn, payload) do
     account = conn.assigns[:account]
     user = Users.get_by_account_id(account.id)
-    # TODO
-    SandwriterBackend.Repo.transaction(fn ->
-      with {:ok, %User{} = user} <- Users.update_user(user, payload),
-           {:ok, %Account{} = account} <- Accounts.update_account(account, payload) do
-        # render(conn, :show, user: user)
 
+    transaction_result =
+      SandwriterBackend.Repo.transaction(fn ->
+        case Users.update_user(user, payload) do
+          {:ok, %User{} = user} ->
+            case Accounts.update_account(account, payload) do
+              {:ok, %Account{} = account} ->
+                conn
+                |> put_status(:ok)
+                |> render("account_details.json", %{account: account, user: user})
+
+              _ ->
+                SandwriterBackend.Repo.rollback("Login already taken.")
+            end
+
+          _ ->
+            SandwriterBackend.Repo.rollback("Display name already taken.")
+        end
+      end)
+
+    case transaction_result do
+      {:ok, x} ->
+        x
+
+      {:error, error_message} ->
         conn
-        |> put_status(:ok)
-        |> render("account_details.json", %{account: account, user: user})
-      end
-    end)
+        |> put_status(:conflict)
+        |> json(error_message)
+    end
   end
 
   def change_password(conn, %{
@@ -132,30 +143,6 @@ defmodule SandwriterBackendWeb.AccountController do
         else
           raise ErrorResponse.BadRequest, message: "new password do not match repeated password"
         end
-    end
-  end
-
-  def show(conn, %{"id" => id}) do
-    # IO.puts("hello from show")
-    account = Accounts.get_account!(id)
-    # IO.puts("after getting account")
-    # IO.inspect(account)
-    render(conn, :show, account: account)
-  end
-
-  def update(conn, %{"id" => id, "account" => account_params}) do
-    account = Accounts.get_account!(id)
-
-    with {:ok, %Account{} = account} <- Accounts.update_account(account, account_params) do
-      render(conn, :show, account: account)
-    end
-  end
-
-  def delete(conn, %{"id" => id}) do
-    account = Accounts.get_account!(id)
-
-    with {:ok, %Account{}} <- Accounts.delete_account(account) do
-      send_resp(conn, :no_content, "")
     end
   end
 end

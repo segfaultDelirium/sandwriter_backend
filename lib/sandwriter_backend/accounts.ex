@@ -42,19 +42,6 @@ defmodule SandwriterBackend.Accounts do
   end
 
   @doc """
-  Returns the list of accounts.
-
-  ## Examples
-
-      iex> list_accounts()
-      [%Account{}, ...]
-
-  """
-  def list_accounts do
-    Repo.all(Account)
-  end
-
-  @doc """
   Gets a single account.
 
   Raises `Ecto.NoResultsError` if the Account does not exist.
@@ -69,24 +56,6 @@ defmodule SandwriterBackend.Accounts do
 
   """
   def get_account!(id), do: Repo.get!(Account, id)
-
-  @doc """
-  Gets single account
-  returns nil if the Account does not exist.
-  ## Examples
-
-
-    iex> get_account_by_login(sample_login)
-    %Account{}
-
-    iex> get_account_by_login(non_existing_login)
-    nil
-  """
-  def get_account_by_login(login) do
-    Account
-    |> where(login: ^login)
-    |> Repo.one()
-  end
 
   @doc """
   Creates a account.
@@ -106,14 +75,6 @@ defmodule SandwriterBackend.Accounts do
     |> Repo.insert()
   end
 
-  # def create_account_and_user(attrs \\ %{}) do
-  #   Ecto.Multi.new()
-  #   |> Ecto.Multi.insert(:account, Account.changeset(%Account{}, attrs))
-  #   |> Ecto.build_assoc(:user)
-  #   |> User.changeset(attrs)
-  #   |> Ecto.Multi.insert(:user)
-  # end
-
   @doc """
   Updates a account.
 
@@ -130,34 +91,5 @@ defmodule SandwriterBackend.Accounts do
     account
     |> Account.changeset(attrs)
     |> Repo.update()
-  end
-
-  @doc """
-  Deletes a account.
-
-  ## Examples
-
-      iex> delete_account(account)
-      {:ok, %Account{}}
-
-      iex> delete_account(account)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_account(%Account{} = account) do
-    Repo.delete(account)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking account changes.
-
-  ## Examples
-
-      iex> change_account(account)
-      %Ecto.Changeset{data: %Account{}}
-
-  """
-  def change_account(%Account{} = account, attrs \\ %{}) do
-    Account.changeset(account, attrs)
   end
 end

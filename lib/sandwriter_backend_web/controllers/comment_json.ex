@@ -1,28 +1,4 @@
 defmodule SandwriterBackendWeb.CommentJSON do
-  alias SandwriterBackend.Comments.Comment
-
-  @doc """
-  Renders a list of comments.
-  """
-  def index(%{comments: comments}) do
-    %{data: for(comment <- comments, do: data(comment))}
-  end
-
-  @doc """
-  Renders a single comment.
-  """
-  def show(%{comment: comment}) do
-    %{data: data(comment)}
-  end
-
-  defp data(%Comment{} = comment) do
-    %{
-      id: comment.id,
-      text: comment.text,
-      deleted_at: comment.deleted_at
-    }
-  end
-
   def render("comment.json", %{comment: comment, user: user}) do
     %{
       id: comment.id,
@@ -30,8 +6,8 @@ defmodule SandwriterBackendWeb.CommentJSON do
       author_id: comment.author_id,
       author: %{display_name: user.display_name},
       replies: [],
-      upvotes: [],
-      downvotes: [],
+      upvotes: 0,
+      downvotes: 0,
       is_upvoted_by_current_user: false,
       is_downvoted_by_current_user: false,
       article_id: comment.article_id,

@@ -45,7 +45,9 @@ defmodule SandwriterBackend.MixProject do
       {:guardian, "~> 2.3"},
       {:cors_plug, "~> 3.0"},
       {:slugify, "~> 1.3"},
-      {:elixir_uuid, "~> 1.2"}
+      {:elixir_uuid, "~> 1.2"},
+      {:accent, "~> 1.1"},
+      {:inflex, "~> 2.1.0"}
     ]
   end
 

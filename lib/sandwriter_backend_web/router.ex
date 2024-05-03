@@ -20,6 +20,8 @@ defmodule SandwriterBackendWeb.Router do
     # plug CORSPlug
     plug CORSPlug, origin: ["http://localhost:4200"]
     plug :accepts, ["json"]
+    plug SandwriterBackendWeb.Auth.AccentPlug
+
     plug :fetch_session
   end
 
@@ -34,30 +36,34 @@ defmodule SandwriterBackendWeb.Router do
 
     post "/accounts/create", AccountController, :create
     post "/accounts/login", AccountController, :login
-    get "/unprotected/accounts/by_id/:id", AccountController, :show
+    # get "/unprotected/accounts/by_id/:id", AccountController, :show
   end
 
   scope "/api", SandwriterBackendWeb do
     pipe_through [:api, :auth]
-    get "/accounts/by_id/:id", AccountController, :show
-    get "/accounts", AccountController, :index
+    # get "/accounts/by_id/:id", AccountController, :show
+    # get "/accounts", AccountController, :index
     get "/accounts/details", AccountController, :get_account_details
-    get "/users", UserController, :index
-    get "/accounts/get-token", AccountController, :get_token
+    # get "/accounts/get-token", AccountController, :get_token
     post "/accounts/change-details", AccountController, :change_details
     post "/accounts/change-password", AccountController, :change_password
     post "/accounts/logout", AccountController, :logout
 
+    get "/users", UserController, :index
+
+    # ArticleController
     get "/articles/:slug", ArticleController, :get_article
     post "/articles/put-sample-article", ArticleController, :put_sample_article
     post "/articles", ArticleController, :create
-    post "/comments/to-article/:article_id", CommentController, :comment_article
-    post "/articles/like/:article_id", UserArticleLikeDislikeController, :like_article
-    post "/articles/dislike/:article_id", UserArticleLikeDislikeController, :dislike_article
 
     get "/articles/without-text-and-comments/all",
         ArticleController,
         :all_without_text_and_comments
+
+    post "/comments/to-article/:article_id", CommentController, :comment_article
+
+    post "/articles/like/:article_id", UserArticleLikeDislikeController, :like_article
+    post "/articles/dislike/:article_id", UserArticleLikeDislikeController, :dislike_article
 
     post "images/", ImageController, :upload
   end

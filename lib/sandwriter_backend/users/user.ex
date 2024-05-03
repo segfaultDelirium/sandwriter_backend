@@ -1,6 +1,7 @@
 defmodule SandwriterBackend.Users.User do
   use Ecto.Schema
   import Ecto.Changeset
+  alias SandwriterBackend.Helpers
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -34,5 +35,10 @@ defmodule SandwriterBackend.Users.User do
     # |> unique_constraint(:display_name)
 
     |> unique_constraint([:display_name, :email, :phone_number])
+  end
+
+  def get_viewable_fields() do
+    [:id, :email, :display_name, :full_name, :gender, :biography, :deleted_at, :phone_number] ++
+      Helpers.timestamp_fields_without_deleted()
   end
 end

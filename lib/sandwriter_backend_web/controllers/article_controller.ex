@@ -4,55 +4,58 @@ defmodule SandwriterBackendWeb.ArticleController do
   alias SandwriterBackend.ArticleTextSections
 
   alias SandwriterBackend.{
-    Accounts,
     Users,
-    Articles,
     Comments,
     UserArticleLikeDislikes,
-    Images,
     ImageArticles
   }
 
-  alias SandwriterBackend.Articles.Article
+  alias SandwriterBackend.Articles
 
   action_fallback SandwriterBackendWeb.FallbackController
 
+  defp link_articles_to_likes_and_dislikes(account_id, articles, user_article_like_dislike_list) do
+    articles
+    |> Enum.map(fn article ->
+      # res =
+      {likes_count, dislikes_count, is_liked_by_current_user, is_disliked_by_current_user} =
+        user_article_like_dislike_list
+        |> Enum.filter(fn like_dislike ->
+          like_dislike.article_id == article.id
+        end)
+        |> Enum.reduce({0, 0, false, false}, fn like_dislike,
+                                                {likes_count, dislikes_count,
+                                                 is_liked_by_current_user,
+                                                 is_disliked_by_current_user} ->
+          new_likes_count = likes_count + if like_dislike.is_liked, do: 1, else: 0
+          new_dislikes_count = dislikes_count + if like_dislike.is_disliked, do: 1, else: 0
+
+          {is_liked, is_disliked} =
+            if like_dislike.account_id == account_id do
+              cond do
+                like_dislike.is_liked -> {true, false}
+                like_dislike.is_disliked -> {false, true}
+                true -> {false, false}
+              end
+            else
+              {is_liked_by_current_user, is_disliked_by_current_user}
+            end
+
+          {new_likes_count, new_dislikes_count, is_liked, is_disliked}
+        end)
+
+      {article, likes_count, dislikes_count, is_liked_by_current_user,
+       is_disliked_by_current_user}
+    end)
+  end
+
   def all_without_text_and_comments(conn, _params) do
     account = conn.assigns[:account]
-    articles = Articles.get_all_without_text()
+    articles = Articles.get_all_without_text_and_comments()
     user_article_like_dislike_list = UserArticleLikeDislikes.list_user_article_like_dislikes()
-    IO.inspect(user_article_like_dislike_list)
 
     articles_with_likes_and_dislikes =
-      articles
-      |> Enum.map(fn article ->
-        # res =
-        {likes_count, dislikes_count, is_liked_by_current_user, is_disliked_by_current_user} =
-          user_article_like_dislike_list
-          |> Enum.filter(fn like_dislike ->
-            like_dislike.article_id == article.id
-          end)
-          |> Enum.reduce({0, 0, false, false}, fn like_dislike, acc ->
-            new_likes_count = elem(acc, 0) + if like_dislike.is_liked, do: 1, else: 0
-            new_dislikes_count = elem(acc, 1) + if like_dislike.is_disliked, do: 1, else: 0
-
-            new_is_liked_by_current_user =
-              if like_dislike.is_liked and like_dislike.account_id == account.id,
-                do: true,
-                else: elem(acc, 2)
-
-            new_is_disliked_by_current_user =
-              if like_dislike.is_disliked and like_dislike.account_id == account.id,
-                do: true,
-                else: elem(acc, 3)
-
-            {new_likes_count, new_dislikes_count, new_is_liked_by_current_user,
-             new_is_disliked_by_current_user}
-          end)
-
-        {article, likes_count, dislikes_count, is_liked_by_current_user,
-         is_disliked_by_current_user}
-      end)
+      link_articles_to_likes_and_dislikes(account.id, articles, user_article_like_dislike_list)
 
     conn
     |> render("list_of_article_without_text_and_comments.json",
@@ -76,8 +79,6 @@ defmodule SandwriterBackendWeb.ArticleController do
         |> json(nil)
       end
     end)
-
-    # conn |> put_status(:bad_request) |> json("failed to upload image")
   end
 
   def get_article(conn, %{"slug" => slug}) do
@@ -86,38 +87,40 @@ defmodule SandwriterBackendWeb.ArticleController do
 
     if article do
       text_sections = ArticleTextSections.get_by_article_id(article.id)
-      IO.puts("text sections:")
-      IO.inspect(text_sections)
+      # IO.puts("text sections:")
+      # IO.inspect(text_sections)
       image_sections = ImageArticles.get_by_article_id(article.id)
 
-      user =
-        if article.author_id do
-          Users.get_by_account_id(article.author_id)
-        else
-          nil
-        end
+      user = Users.get_by_account_id(article.author_id)
+
+      # user =
+      #   if article.author_id do
+      #     Users.get_by_account_id(article.author_id)
+      #   else
+      #     nil
+      #   end
+
+      article = Map.put(article, :author, user)
 
       comments = Comments.get_by_article_id(article.id)
-      # IO.inspect(comments)
 
       likes_count = UserArticleLikeDislikes.get_likes_count_by_article_id(article.id)
       dislikes_count = UserArticleLikeDislikes.get_dislikes_count_by_article_id(article.id)
 
-      current_user_upvotes_downvotes =
+      current_user_likes_dislikes =
         case UserArticleLikeDislikes.get_by_article_id_and_user_id(article.id, account.id) do
           nil -> %{is_liked: false, is_disliked: false}
           x -> x
         end
 
-      # render(conn, :show, article: article)
       render(conn, "article.json",
         article: article,
         user: user,
         comments: comments,
-        likes_count: likes_count,
-        dislikes_count: dislikes_count,
-        is_upvoted_by_current_user: current_user_upvotes_downvotes.is_liked,
-        is_downvoted_by_current_user: current_user_upvotes_downvotes.is_disliked,
+        likes: likes_count,
+        dislikes: dislikes_count,
+        is_liked_by_current_user: current_user_likes_dislikes.is_liked,
+        is_disliked_by_current_user: current_user_likes_dislikes.is_disliked,
         text_sections: text_sections,
         image_sections: image_sections
       )
@@ -126,11 +129,6 @@ defmodule SandwriterBackendWeb.ArticleController do
       |> put_status(404)
       |> json("article with given slug #{slug} could not be found")
     end
-  end
-
-  def index(conn, _params) do
-    articles = Articles.list_articles()
-    render(conn, :index, articles: articles)
   end
 
   defp create_slug(title) do
@@ -149,7 +147,7 @@ defmodule SandwriterBackendWeb.ArticleController do
     # sample_article_attributes = get_sample_article_attributes()
     # sample_article_text_section = get_sample_article_text_section()
 
-    SandwriterBackend.Repo.transaction(fn ->
+    transaction_result = SandwriterBackend.Repo.transaction(fn ->
       with {:ok, article} <- Articles.create_article(attributes) do
         text_sections =
           sections
@@ -183,26 +181,15 @@ defmodule SandwriterBackendWeb.ArticleController do
         |> json(%{slug: article.slug})
       end
     end)
-  end
 
-  def show(conn, %{"id" => id}) do
-    article = Articles.get_article!(id)
-    render(conn, :show, article: article)
-  end
+    case transaction_result do
+      {:ok, x} ->
+        x
 
-  def update(conn, %{"id" => id, "article" => article_params}) do
-    article = Articles.get_article!(id)
-
-    with {:ok, %Article{} = article} <- Articles.update_article(article, article_params) do
-      render(conn, :show, article: article)
-    end
-  end
-
-  def delete(conn, %{"id" => id}) do
-    article = Articles.get_article!(id)
-
-    with {:ok, %Article{}} <- Articles.delete_article(article) do
-      send_resp(conn, :no_content, "")
+      {:error, error_message} ->
+        conn
+        |> put_status(:conflict)
+        |> json(error_message)
     end
   end
 

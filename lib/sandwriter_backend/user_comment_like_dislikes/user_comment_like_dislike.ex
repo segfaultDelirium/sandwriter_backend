@@ -19,4 +19,9 @@ defmodule SandwriterBackend.UserCommentLikeDislikes.UserCommentLikeDislike do
     |> cast(attrs, [:is_liked, :is_disliked])
     |> validate_required([:is_liked, :is_disliked])
   end
+
+  def get_viewable_fields() do
+    [:id, :account_id, :comment_id, :is_liked, :is_disliked] ++
+      Helpers.timestamp_fields_without_deleted()
+  end
 end

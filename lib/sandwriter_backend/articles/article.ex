@@ -1,6 +1,7 @@
 defmodule SandwriterBackend.Articles.Article do
   use Ecto.Schema
   import Ecto.Changeset
+  alias SandwriterBackend.Helpers
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -18,5 +19,9 @@ defmodule SandwriterBackend.Articles.Article do
     article
     |> cast(attrs, [:author_id, :title, :slug, :deleted_at])
     |> validate_required([:author_id, :title, :slug])
+  end
+
+  def get_viewable_fields() do
+    [:id, :author_id, :title, :slug] ++ Helpers.timestamp_fields()
   end
 end

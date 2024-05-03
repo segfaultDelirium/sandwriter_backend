@@ -15,7 +15,6 @@ defmodule SandwriterBackend.Users do
         select: user
 
     Repo.one(query)
-    # query = from user in Users, where user.account_id = ^account_id, select user
   end
 
   @doc """
@@ -45,20 +44,6 @@ defmodule SandwriterBackend.Users do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
-
-  @doc """
-  Creates a user.
-
-  ## Examples
-
-      iex> create_user(%{field: value})
-      {:ok, %User{}}
-
-      iex> create_user(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def create_user(account, attrs \\ %{}) do
     # %User{}
     account
@@ -83,34 +68,5 @@ defmodule SandwriterBackend.Users do
     user
     |> User.changeset(attrs)
     |> Repo.update()
-  end
-
-  @doc """
-  Deletes a user.
-
-  ## Examples
-
-      iex> delete_user(user)
-      {:ok, %User{}}
-
-      iex> delete_user(user)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_user(%User{} = user) do
-    Repo.delete(user)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking user changes.
-
-  ## Examples
-
-      iex> change_user(user)
-      %Ecto.Changeset{data: %User{}}
-
-  """
-  def change_user(%User{} = user, attrs \\ %{}) do
-    User.changeset(user, attrs)
   end
 end

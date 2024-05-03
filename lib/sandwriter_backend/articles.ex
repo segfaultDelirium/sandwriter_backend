@@ -14,7 +14,7 @@ defmodule SandwriterBackend.Articles do
   #     group_by: user_article.article_id,
   #     select: count(user_article.is_liked)
 
-  def get_all_without_text() do
+  def get_all_without_text_and_comments() do
     query =
       from article in Article,
         join: account in Account,
@@ -23,7 +23,18 @@ defmodule SandwriterBackend.Articles do
         on: account.id == user.account_id,
         select: %{
           id: article.id,
-          author: %{display_name: user.display_name},
+          author: %{
+            id: user.id,
+            email: user.email,
+            display_name: user.display_name,
+            full_name: user.full_name,
+            gender: user.gender,
+            biography: user.biography,
+            phone_number: user.phone_number,
+            inserted_at: user.inserted_at,
+            updated_at: user.updated_at,
+            deleted_at: user.deleted_at
+          },
           title: article.title,
           slug: article.slug,
           inserted_at: article.inserted_at,

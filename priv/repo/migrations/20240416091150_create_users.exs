@@ -16,6 +16,7 @@ defmodule SandwriterBackend.Repo.Migrations.CreateUsers do
       timestamps()
     end
 
-    create index(:users, [:account_id, :display_name])
+    create index(:users, [:account_id])
+    create unique_index(:users, [:display_name])
   end
 end
