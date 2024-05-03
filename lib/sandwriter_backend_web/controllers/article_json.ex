@@ -63,7 +63,7 @@ defmodule SandwriterBackendWeb.ArticleJSON do
       dislikes,
       is_liked_by_current_user,
       is_disliked_by_current_user,
-      comment_count: Enum.count(comments)
+      Enum.count(comments)
     ) |||
       %{
         comments:
