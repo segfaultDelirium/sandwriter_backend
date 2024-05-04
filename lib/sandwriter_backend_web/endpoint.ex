@@ -42,6 +42,6 @@ defmodule SandwriterBackendWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
 
-  plug CORSPlug, origin: ["http://localhost:4200"]
+  plug CORSPlug, origin: ["http://localhost:4200", "http://139.162.175.250:9999"]
   plug SandwriterBackendWeb.Router
 end

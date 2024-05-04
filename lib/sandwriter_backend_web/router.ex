@@ -18,7 +18,7 @@ defmodule SandwriterBackendWeb.Router do
 
   pipeline :api do
     # plug CORSPlug
-    plug CORSPlug, origin: ["http://localhost:4200"]
+    plug CORSPlug, origin: ["http://localhost:4200", "http://139.162.175.250:9999"]
     plug :accepts, ["json"]
     plug SandwriterBackendWeb.Auth.AccentPlug
 
