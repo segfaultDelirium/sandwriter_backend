@@ -9,7 +9,7 @@ defmodule SandwriterBackendWeb.ImageController do
 
   def upload(conn, params) do
     account = conn.assigns[:account]
-    IO.inspect(params)
+    # IO.inspect(params)
     uploaded_image = params["uploaded_image"]
     {:ok, binary_data} = File.read(uploaded_image.path)
     attributes = %{data: binary_data, uploaded_by: account.id}

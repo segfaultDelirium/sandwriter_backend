@@ -16,8 +16,8 @@ defmodule SandwriterBackend.UserCommentLikeDislikes.UserCommentLikeDislike do
   @doc false
   def changeset(user_comment_like_dislike, attrs) do
     user_comment_like_dislike
-    |> cast(attrs, [:is_liked, :is_disliked])
-    |> validate_required([:is_liked, :is_disliked])
+    |> cast(attrs, [:account_id, :comment_id, :is_liked, :is_disliked])
+    |> validate_required([:account_id, :comment_id, :is_liked, :is_disliked])
   end
 
   def get_viewable_fields() do

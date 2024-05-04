@@ -18,11 +18,6 @@ defmodule SandwriterBackendWeb.Auth.AccentPlug do
     # |> IO.inspect()
   end
 
-  def snake_case_response_json(conn) do
-    IO.puts("Hello from snake_case_response_json")
-    IO.inspect(conn)
-  end
-
   defp snake_case_map_keys(%Date{} = val), do: val
   defp snake_case_map_keys(%Plug.Upload{} = val), do: val
   defp snake_case_map_keys(%DateTime{} = val), do: val

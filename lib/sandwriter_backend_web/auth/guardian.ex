@@ -22,8 +22,8 @@ defmodule SandwriterBackendWeb.Auth.Guardian do
   end
 
   def authenticate(login, password) do
-    IO.inspect(login)
-    IO.inspect(password)
+    # IO.inspect(login)
+    # IO.inspect(password)
 
     case Accounts.get_by_login(login) do
       {:ok, account} ->

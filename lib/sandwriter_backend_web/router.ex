@@ -60,7 +60,11 @@ defmodule SandwriterBackendWeb.Router do
         ArticleController,
         :all_without_text_and_comments
 
-    post "/comments/to-article/:article_id", CommentController, :comment_article
+    post "/comments/:article_id", CommentController, :comment_article
+    post "/comments/:article_id/reply-to/:comment_id", CommentController, :reply_to_comment
+
+    post "/comments/like/:comment_id", UserCommentLikeDislikeController, :like_comment
+    post "/comments/dislike/:comment_id", UserCommentLikeDislikeController, :dislike_comment
 
     post "/articles/like/:article_id", UserArticleLikeDislikeController, :like_article
     post "/articles/dislike/:article_id", UserArticleLikeDislikeController, :dislike_article

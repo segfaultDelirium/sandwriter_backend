@@ -8,7 +8,7 @@ defmodule SandwriterBackend.UserArticleLikeDislikes do
 
   alias SandwriterBackend.UserArticleLikeDislikes.UserArticleLikeDislike
 
-  def get_by_article_id_and_user_id(article_id, account_id) do
+  def get_by_article_id_and_account_id(article_id, account_id) do
     query =
       from user_article in UserArticleLikeDislike,
         where: user_article.article_id == ^article_id and user_article.account_id == ^account_id

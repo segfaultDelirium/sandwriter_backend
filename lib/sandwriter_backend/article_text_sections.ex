@@ -42,8 +42,6 @@ defmodule SandwriterBackend.ArticleTextSections do
 
   """
   def create_article_text_section(attrs \\ %{}) do
-    IO.inspect(attrs)
-
     %ArticleTextSection{}
     |> ArticleTextSection.changeset(attrs)
     |> Repo.insert()

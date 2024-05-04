@@ -42,7 +42,7 @@ defmodule SandwriterBackend.Articles do
           deleted_at: article.deleted_at
         }
 
-    Repo.all(query)
+    query |> order_by(desc: :inserted_at) |> Repo.all()
   end
 
   def get_by_slug(slug) do

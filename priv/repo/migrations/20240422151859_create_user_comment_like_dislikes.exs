@@ -12,7 +12,7 @@ defmodule SandwriterBackend.Repo.Migrations.CreateUserCommentLikeDislikes do
       timestamps()
     end
 
-    create index(:user_comment_like_dislikes, [:account_id, :comment_id])
+    create unique_index(:user_comment_like_dislikes, [:account_id, :comment_id])
     # create index(:user_comment_like_dislikes, [:comment_id])
   end
 end

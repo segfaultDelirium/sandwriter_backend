@@ -53,19 +53,25 @@ defmodule SandwriterBackendWeb.ArticleController do
   defp link_comment_counts_to_articles(articles, comment_counts) do
     # IO.inspect(articles)
     # IO.inspect(comment_counts)
-    articles |> Enum.map(fn article_tuple -> 
+    articles
+    |> Enum.map(fn article_tuple ->
+      article = elem(article_tuple, 0)
+      # |> IO.inspect()
 
-      article = elem(article_tuple, 0) |> IO.inspect()
-
-      count = comment_counts 
+      count =
+        comment_counts
         |> Enum.find(fn comment_count -> comment_count.article_id == article.id end)
-      count = case count do
-        nil -> 0
-        x -> x.count
-      end
+
+      count =
+        case count do
+          nil -> 0
+          x -> x.count
+        end
+
       last_index = article_tuple |> Tuple.to_list() |> Enum.count()
       Tuple.insert_at(article_tuple, last_index, count)
     end)
+
     # |> IO.inspect()
   end
 
@@ -78,7 +84,6 @@ defmodule SandwriterBackendWeb.ArticleController do
     articles_with_likes_and_dislikes_and_comment_count =
       link_articles_to_likes_and_dislikes(account.id, articles, user_article_like_dislike_list)
       |> link_comment_counts_to_articles(comment_count_per_article)
-
 
     conn
     |> render("list_of_article_without_text_and_comments.json",
@@ -104,34 +109,54 @@ defmodule SandwriterBackendWeb.ArticleController do
     end)
   end
 
+  defp link_comments_to_like_dislike_counts(comments, comments_like_dislike_counts) do
+    comments
+    |> Enum.map(fn comment ->
+      comment_like_dislike_count =
+        comments_like_dislike_counts |> Enum.find(fn x -> x.comment_id == comment.id end)
+
+      {likes_count, dislikes_count, is_liked_by_current_user, is_disliked_by_current_user} =
+        case comment_like_dislike_count do
+          nil ->
+            {0, 0, false, false}
+
+          x ->
+            {x.likes_count, x.dislikes_count, x.is_liked_by_current_user,
+             x.is_disliked_by_current_user}
+        end
+
+      comment
+      |> Map.put(:likes_count, likes_count)
+      |> Map.put(:dislikes_count, dislikes_count)
+      |> Map.put(:is_liked_by_current_user, is_liked_by_current_user)
+      |> Map.put(:is_disliked_by_current_user, is_disliked_by_current_user)
+    end)
+  end
+
   def get_article(conn, %{"slug" => slug}) do
     account = conn.assigns[:account]
     article = Articles.get_by_slug(slug)
 
     if article do
       text_sections = ArticleTextSections.get_by_article_id(article.id)
-      # IO.puts("text sections:")
-      # IO.inspect(text_sections)
       image_sections = ImageArticles.get_by_article_id(article.id)
 
       user = Users.get_by_account_id(article.author_id)
-
-      # user =
-      #   if article.author_id do
-      #     Users.get_by_account_id(article.author_id)
-      #   else
-      #     nil
-      #   end
-
       article = Map.put(article, :author, user)
 
       comments = Comments.get_by_article_id(article.id)
+
+      comments_like_dislike_counts =
+        Comments.get_like_dislike_count_per_comment_in_article(article.id, account.id)
+
+      comments =
+        link_comments_to_like_dislike_counts(comments, comments_like_dislike_counts)
 
       likes_count = UserArticleLikeDislikes.get_likes_count_by_article_id(article.id)
       dislikes_count = UserArticleLikeDislikes.get_dislikes_count_by_article_id(article.id)
 
       current_user_likes_dislikes =
-        case UserArticleLikeDislikes.get_by_article_id_and_user_id(article.id, account.id) do
+        case UserArticleLikeDislikes.get_by_article_id_and_account_id(article.id, account.id) do
           nil -> %{is_liked: false, is_disliked: false}
           x -> x
         end
@@ -170,40 +195,41 @@ defmodule SandwriterBackendWeb.ArticleController do
     # sample_article_attributes = get_sample_article_attributes()
     # sample_article_text_section = get_sample_article_text_section()
 
-    transaction_result = SandwriterBackend.Repo.transaction(fn ->
-      with {:ok, article} <- Articles.create_article(attributes) do
-        text_sections =
-          sections
-          |> Enum.filter(fn section -> section["sectionType"] == "TEXT" end)
-          |> Enum.map(fn section ->
-            %{
-              section_index: section["sectionIndex"],
-              text: section["text"],
-              article_id: article.id
-            }
-          end)
+    transaction_result =
+      SandwriterBackend.Repo.transaction(fn ->
+        with {:ok, article} <- Articles.create_article(attributes) do
+          text_sections =
+            sections
+            |> Enum.filter(fn section -> section["sectionType"] == "TEXT" end)
+            |> Enum.map(fn section ->
+              %{
+                section_index: section["sectionIndex"],
+                text: section["text"],
+                article_id: article.id
+              }
+            end)
 
-        image_sections =
-          sections
-          |> Enum.filter(fn section -> section["sectionType"] == "IMAGE" end)
-          |> Enum.map(fn section ->
-            %{
-              article_id: article.id,
-              image_id: section["imageId"],
-              title: section["imageTitle"],
-              section_index: section["sectionIndex"]
-            }
-          end)
+          image_sections =
+            sections
+            |> Enum.filter(fn section -> section["sectionType"] == "IMAGE" end)
+            |> Enum.map(fn section ->
+              %{
+                article_id: article.id,
+                image_id: section["imageId"],
+                title: section["imageTitle"],
+                section_index: section["sectionIndex"]
+              }
+            end)
 
-        ArticleTextSections.create_all(text_sections)
+          ArticleTextSections.create_all(text_sections)
 
-        ImageArticles.create_all(image_sections)
+          ImageArticles.create_all(image_sections)
 
-        conn
-        |> put_status(201)
-        |> json(%{slug: article.slug})
-      end
-    end)
+          conn
+          |> put_status(201)
+          |> json(%{slug: article.slug})
+        end
+      end)
 
     case transaction_result do
       {:ok, x} ->

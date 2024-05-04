@@ -10,7 +10,7 @@ defmodule SandwriterBackendWeb.UserArticleLikeDislikeController do
   def like_article(conn, %{"article_id" => article_id}) do
     account = conn.assigns[:account]
 
-    case UserArticleLikeDislikes.get_by_article_id_and_user_id(article_id, account.id) do
+    case UserArticleLikeDislikes.get_by_article_id_and_account_id(article_id, account.id) do
       nil ->
         params = %{
           account_id: account.id,
@@ -61,7 +61,7 @@ defmodule SandwriterBackendWeb.UserArticleLikeDislikeController do
   def dislike_article(conn, %{"article_id" => article_id}) do
     account = conn.assigns[:account]
 
-    case UserArticleLikeDislikes.get_by_article_id_and_user_id(article_id, account.id) do
+    case UserArticleLikeDislikes.get_by_article_id_and_account_id(article_id, account.id) do
       nil ->
         params = %{
           account_id: account.id,

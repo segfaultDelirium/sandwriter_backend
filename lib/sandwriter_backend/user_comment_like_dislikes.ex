@@ -8,6 +8,14 @@ defmodule SandwriterBackend.UserCommentLikeDislikes do
 
   alias SandwriterBackend.UserCommentLikeDislikes.UserCommentLikeDislike
 
+  def get_by_comment_id_and_account_id(comment_id, account_id) do
+    query =
+      from user_comment in UserCommentLikeDislike,
+        where: user_comment.comment_id == ^comment_id and user_comment.account_id == ^account_id
+
+    Repo.one(query)
+  end
+
   @doc """
   Returns the list of user_comment_like_dislikes.
 
@@ -67,7 +75,10 @@ defmodule SandwriterBackend.UserCommentLikeDislikes do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_user_comment_like_dislike(%UserCommentLikeDislike{} = user_comment_like_dislike, attrs) do
+  def update_user_comment_like_dislike(
+        %UserCommentLikeDislike{} = user_comment_like_dislike,
+        attrs
+      ) do
     user_comment_like_dislike
     |> UserCommentLikeDislike.changeset(attrs)
     |> Repo.update()
@@ -98,7 +109,10 @@ defmodule SandwriterBackend.UserCommentLikeDislikes do
       %Ecto.Changeset{data: %UserCommentLikeDislike{}}
 
   """
-  def change_user_comment_like_dislike(%UserCommentLikeDislike{} = user_comment_like_dislike, attrs \\ %{}) do
+  def change_user_comment_like_dislike(
+        %UserCommentLikeDislike{} = user_comment_like_dislike,
+        attrs \\ %{}
+      ) do
     UserCommentLikeDislike.changeset(user_comment_like_dislike, attrs)
   end
 end

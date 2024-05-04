@@ -11,7 +11,8 @@ defmodule SandwriterBackendWeb.ArticleJSON do
 
   def render("list_of_article_without_text_and_comments.json", %{articles: articles}) do
     for(
-      {article, likes, dislikes, is_liked_by_current_user, is_disliked_by_current_user, comment_count} <-
+      {article, likes, dislikes, is_liked_by_current_user, is_disliked_by_current_user,
+       comment_count} <-
         articles,
       do:
         render(
@@ -56,18 +57,19 @@ defmodule SandwriterBackendWeb.ArticleJSON do
         text_sections: text_sections,
         image_sections: image_sections
       }) do
+    sections =
+      Enum.map(text_sections, fn text_section ->
+        Map.take(text_section, ArticleTextSection.get_viewable_fields()) |||
+          %{section_type: "TEXT"}
+      end) ++
+        Enum.map(image_sections, fn image_section ->
+          %{section_type: "IMAGE", image_base_64: Base.encode64(image_section.data)} |||
+            Map.take(image_section, ImageArticle.get_viewable_fields())
+        end)
 
-    sections = Enum.map(text_sections, fn text_section ->
-            Map.take(text_section, ArticleTextSection.get_viewable_fields()) |||
-              %{section_type: "TEXT"}
-          end) ++
-            Enum.map(image_sections, fn image_section ->
-              %{section_type: "IMAGE", image_base_64: Base.encode64(image_section.data)} |||
-                Map.take(image_section, ImageArticle.get_viewable_fields())
-            end)
     render(
       "article_without_text_and_comments.json",
-      article,      
+      article,
       likes,
       dislikes,
       is_liked_by_current_user,
@@ -80,9 +82,15 @@ defmodule SandwriterBackendWeb.ArticleJSON do
             Map.take(comment, Comment.get_viewable_fields()) |||
               %{
                 author: Map.take(comment.author, User.get_viewable_fields())
+              } |||
+              %{
+                is_liked_by_current_user: comment.is_liked_by_current_user,
+                is_disliked_by_current_user: comment.is_disliked_by_current_user,
+                likes: comment.likes_count,
+                dislikes: comment.dislikes_count
               }
           end),
-        sections: sections |> Enum.sort(& (&1.section_index <= &2.section_index))
+        sections: sections |> Enum.sort(&(&1.section_index <= &2.section_index))
       }
   end
 end

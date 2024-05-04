@@ -10,6 +10,7 @@ defmodule SandwriterBackend.Comments do
   alias SandwriterBackend.Comments.Comment
   alias SandwriterBackend.Accounts.Account
   alias SandwriterBackend.Users.User
+  alias SandwriterBackend.UserCommentLikeDislikes.UserCommentLikeDislike
 
   def get_comment_count_per_article_id() do
     query =
@@ -49,6 +50,44 @@ defmodule SandwriterBackend.Comments do
             updated_at: user.updated_at,
             deleted_at: user.deleted_at
           }
+        }
+
+    Repo.all(query)
+  end
+
+  def get_like_dislike_count_per_comment_in_article(article_id, account_id) do
+    query =
+      from comment in Comment,
+        join: user_comment_like_dislike in UserCommentLikeDislike,
+        on: user_comment_like_dislike.comment_id == comment.id,
+        where: comment.article_id == ^article_id,
+        group_by: user_comment_like_dislike.comment_id,
+        select: %{
+          comment_id: user_comment_like_dislike.comment_id,
+          is_liked_by_current_user:
+            count(
+              fragment(
+                "CASE WHEN ? THEN 1 ELSE NULL END",
+                user_comment_like_dislike.account_id == ^account_id and
+                  user_comment_like_dislike.is_liked
+              )
+            ),
+          is_disliked_by_current_user:
+            count(
+              fragment(
+                "CASE WHEN ? THEN 1 ELSE NULL END",
+                user_comment_like_dislike.account_id == ^account_id and
+                  user_comment_like_dislike.is_disliked
+              )
+            ),
+          likes_count:
+            count(
+              fragment("CASE WHEN ? THEN 1 ELSE NULL END", user_comment_like_dislike.is_liked)
+            ),
+          dislikes_count:
+            count(
+              fragment("CASE WHEN ? THEN 1 ELSE NULL END", user_comment_like_dislike.is_disliked)
+            )
         }
 
     Repo.all(query)

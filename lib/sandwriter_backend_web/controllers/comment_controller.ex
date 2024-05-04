@@ -30,4 +30,7 @@ defmodule SandwriterBackendWeb.CommentController do
         raise ErrorResponse.BadRequest, message: "Failed to create comment"
     end
   end
+
+  def reply_to_comment(conn, %{"article_id" => article_id, "comment_id" => comment_id}) do
+  end
 end
