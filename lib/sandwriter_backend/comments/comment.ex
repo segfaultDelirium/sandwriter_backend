@@ -20,7 +20,7 @@ defmodule SandwriterBackend.Comments.Comment do
   @doc false
   def changeset(comment, attrs) do
     comment
-    |> cast(attrs, [:author_id, :article_id, :text, :deleted_at])
+    |> cast(attrs, [:author_id, :article_id, :text, :deleted_at, :replies_to])
     |> validate_required([:author_id, :article_id, :text])
   end
 

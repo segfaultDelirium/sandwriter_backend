@@ -31,6 +31,29 @@ defmodule SandwriterBackendWeb.CommentController do
     end
   end
 
-  def reply_to_comment(conn, %{"article_id" => article_id, "comment_id" => comment_id}) do
+  def reply_to_comment(conn, %{
+        "article_id" => article_id,
+        "comment_id" => comment_id,
+        "comment" => comment
+      }) do
+    account = conn.assigns[:account]
+    user = Users.get_by_account_id(account.id)
+
+    comment_params = %{
+      article_id: article_id,
+      text: comment,
+      author_id: account.id,
+      replies_to: comment_id
+    }
+
+    case Comments.create_comment(comment_params) do
+      {:ok, comment} ->
+        conn
+        |> put_status(:created)
+        |> render("comment.json", %{comment: comment, user: user})
+
+      {:error, _e} ->
+        raise ErrorResponse.BadRequest, message: "Failed to create comment"
+    end
   end
 end
