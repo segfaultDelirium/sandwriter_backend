@@ -32,14 +32,20 @@ defmodule SandwriterBackendWeb.ArticleController do
           new_dislikes_count = dislikes_count + if like_dislike.is_disliked, do: 1, else: 0
 
           {is_liked, is_disliked} =
-            if like_dislike.account_id == account_id do
-              cond do
-                like_dislike.is_liked -> {true, false}
-                like_dislike.is_disliked -> {false, true}
-                true -> {false, false}
-              end
-            else
-              {is_liked_by_current_user, is_disliked_by_current_user}
+            case account_id do
+              nil ->
+                {is_liked_by_current_user, is_disliked_by_current_user}
+
+              account_id ->
+                if like_dislike.account_id == account_id do
+                  cond do
+                    like_dislike.is_liked -> {true, false}
+                    like_dislike.is_disliked -> {false, true}
+                    true -> {false, false}
+                  end
+                else
+                  {is_liked_by_current_user, is_disliked_by_current_user}
+                end
             end
 
           {new_likes_count, new_dislikes_count, is_liked, is_disliked}
@@ -76,13 +82,18 @@ defmodule SandwriterBackendWeb.ArticleController do
   end
 
   def all_without_text_and_comments(conn, _params) do
-    account = conn.assigns[:account]
+    account_id =
+      case conn.assigns[:account] do
+        nil -> nil
+        account -> account.id
+      end
+
     articles = Articles.get_all_without_text_and_comments()
     comment_count_per_article = Comments.get_comment_count_per_article_id()
     user_article_like_dislike_list = UserArticleLikeDislikes.list_user_article_like_dislikes()
 
     articles_with_likes_and_dislikes_and_comment_count =
-      link_articles_to_likes_and_dislikes(account.id, articles, user_article_like_dislike_list)
+      link_articles_to_likes_and_dislikes(account_id, articles, user_article_like_dislike_list)
       |> link_comment_counts_to_articles(comment_count_per_article)
 
     conn
@@ -134,7 +145,12 @@ defmodule SandwriterBackendWeb.ArticleController do
   end
 
   def get_article(conn, %{"slug" => slug}) do
-    account = conn.assigns[:account]
+    account_id =
+      case conn.assigns[:account] do
+        nil -> nil
+        account -> account.id
+      end
+
     article = Articles.get_by_slug(slug)
 
     if article do
@@ -147,7 +163,7 @@ defmodule SandwriterBackendWeb.ArticleController do
       comments = Comments.get_by_article_id(article.id)
 
       comments_like_dislike_counts =
-        Comments.get_like_dislike_count_per_comment_in_article(article.id, account.id)
+        Comments.get_like_dislike_count_per_comment_in_article(article.id, account_id)
 
       comments =
         link_comments_to_like_dislike_counts(comments, comments_like_dislike_counts)
@@ -156,9 +172,15 @@ defmodule SandwriterBackendWeb.ArticleController do
       dislikes_count = UserArticleLikeDislikes.get_dislikes_count_by_article_id(article.id)
 
       current_user_likes_dislikes =
-        case UserArticleLikeDislikes.get_by_article_id_and_account_id(article.id, account.id) do
-          nil -> %{is_liked: false, is_disliked: false}
-          x -> x
+        case account_id do
+          nil ->
+            %{is_liked: false, is_disliked: false}
+
+          account_id ->
+            case UserArticleLikeDislikes.get_by_article_id_and_account_id(article.id, account_id) do
+              nil -> %{is_liked: false, is_disliked: false}
+              x -> x
+            end
         end
 
       render(conn, "article.json",

@@ -36,7 +36,12 @@ defmodule SandwriterBackendWeb.Router do
 
     post "/accounts/create", AccountController, :create
     post "/accounts/login", AccountController, :login
-    # get "/unprotected/accounts/by_id/:id", AccountController, :show
+
+    get "/articles/:slug", ArticleController, :get_article
+
+    get "/articles/without-text-and-comments/all",
+        ArticleController,
+        :all_without_text_and_comments
   end
 
   scope "/api", SandwriterBackendWeb do
@@ -52,13 +57,8 @@ defmodule SandwriterBackendWeb.Router do
     get "/users", UserController, :index
 
     # ArticleController
-    get "/articles/:slug", ArticleController, :get_article
     post "/articles/put-sample-article", ArticleController, :put_sample_article
     post "/articles", ArticleController, :create
-
-    get "/articles/without-text-and-comments/all",
-        ArticleController,
-        :all_without_text_and_comments
 
     post "/comments/:article_id", CommentController, :comment_article
     post "/comments/:article_id/reply-to/:comment_id", CommentController, :reply_to_comment
